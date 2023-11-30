@@ -1,12 +1,14 @@
 <script lang="ts">
 import SpatialView from './components/SpatialView.vue'
 import TimeSeries from './components/TimeSeries.vue'
+import HeatmapView from './components/HeatmapView.vue'
 
 export default {
   components: {
     SpatialView,
-    TimeSeries
-  }
+    TimeSeries,
+    HeatmapView
+}
 }
 </script>
 
@@ -31,6 +33,12 @@ export default {
       <v-col>
         <TimeSeries />
       </v-col>
+
+      
+    </v-row>
+    <v-row>
+    <h2>Heatmap Layout</h2>
+    <HeatmapView />
     </v-row>
   </v-container>
 </template>

@@ -1,5 +1,5 @@
 <script lang="ts">
-import * as d3 from 'd3';
+import * as d3 from "d3";
 import { isEmpty, debounce } from 'lodash';
 import { ComponentSize, Margin } from '../types';
 
@@ -8,13 +8,21 @@ const rack_err = 'l7'
 const bp_err = '0'
 const sb_err = '6'
 
-let tempData = []
-Object.values(data).forEach(d => {
-    let dataObj = {
+// let tempData = []
+// Object.values(data).forEach(d => {
+//     let dataObj = {
+//         check_time: d3.timeParse('%Y-%m-%d %H:%M:%S')(d.check_time),
+//         temp: +d[`bp${bp_err}_sb${sb_err}_cpu_0_temp`]
+//     }
+//     tempData.push(dataObj)
+// })
+let tempData = data.map(d => {
+    let Obj = {
         check_time: d3.timeParse('%Y-%m-%d %H:%M:%S')(d.check_time),
-        temp: +d[`bp${bp_err}_sb${sb_err}_cpu_0_temp`]
+        temp: +d[`bp${bp_err}_sb${sb_err}_cpu_0_temp`],
+        rack: d.rack
     }
-    tempData.push(dataObj)
+    return Obj
 })
 
 export default {

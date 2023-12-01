@@ -8,13 +8,28 @@ const rack_err = 'l07'
 const bp_err = '0'
 const sb_err = '6'
 
+
 let tempData = data.map(d => {
     let Obj = {
         check_time: d3.timeParse('%Y-%m-%d %H:%M:%S')(d.check_time),
-        temp: +d[`bp${bp_err}_sb${sb_err}_cpu_0_temp`],
+        cpu0: +d[`bp${bp_err}_sb${sb_err}_cpu_0_temp`],
+        cpu1: +d[`bp${bp_err}_sb${sb_err}_cpu_1_temp`],
+        cpu2: +d[`bp${bp_err}_sb${sb_err}_cpu_2_temp`],
+        cpu3: +d[`bp${bp_err}_sb${sb_err}_cpu_3_temp`],
+
         rack: d.rack
     }
     return Obj
+})
+let tempDataErr = []
+let tempDataNor = []
+Object.values(tempData).forEach(d => {
+    if (d.rack == rack_err) {
+        tempDataErr.push(d)
+    }
+    else {
+        tempDataNor.push(d)
+    }
 })
 export default {
     data() {
@@ -42,23 +57,28 @@ export default {
         initChart() {
             let chartContainer = d3.select('#heatmap-svg')
                 .attr('viewBox', [0, 0, this.size.width, this.size.height])
-            console.log(tempData)
             const timeFormat = d3.timeFormat('%H:%M');
-            let rack_letters = 'abcdefghijklmnopqrstuvwx'.split('');;
-            let rack_nums = d3.range(45, 0, -1);
-            let padding = 60;
+            let padding = 60
+
             let cpuList = ["CPU 0", "CPU 1", "CPU 2", "CPU 3"]
+            let timeSteps = []
+            Object.values(tempData).forEach((d, i) => {
+                if (i % 2 == 0) {
+                    timeSteps.push(d.check_time)
+                }
+            })
+
             let xScale = d3.scaleTime()
                     .domain(d3.extent(tempData.map(d => d.check_time)))
                     .range([padding, this.size.width - padding])
             let xTicks = d3.axisBottom(xScale)
                 .tickFormat(timeFormat)
-            
+
             let yScale = d3.scaleBand()
                 .domain(cpuList)
                 .range([padding, this.size.height - padding])
                 .padding(0.1)
-                .paddingInner(0.2);
+                // .paddingInner(0.2);
 
             const xAxis = chartContainer.append('g')
                 .attr('transform', `translate(0, ${this.size.height - padding})`)
@@ -67,7 +87,21 @@ export default {
             const yAxis = chartContainer.append('g')
                 .attr('transform', `translate(${padding}, 0)`)
                 .call(d3.axisLeft(yScale))
-
+            
+            // heatmap blocks
+            let grid = chartContainer.append('g')
+                    
+            cpuList.forEach(item => {
+                 grid.selectAll()
+                    .data(tempDataErr)
+                    .enter()
+                    .append('rect')
+                    .attr('x', d => xScale(d.check_time))
+                    .attr('y', yScale(item))
+                    .attr('width', 0.95 * xScale(tempData[2].check_time) - xScale(tempData[0].check_time))
+                    .attr('height', yScale.bandwidth())
+            })
+                
             // rack grid
         //     const grid = chartContainer.append('g')
         //         .selectAll('rect')

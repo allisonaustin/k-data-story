@@ -59,17 +59,12 @@ export default {
                 .attr('viewBox', [0, 0, this.size.width, this.size.height])
             const timeFormat = d3.timeFormat('%H:%M');
             let padding = 60
-
+            let timeBand = tempDataErr[1].check_time - tempDataErr[0].check_time
+            let timeExtent = d3.extent(tempData.map(d => d.check_time))
             let cpuList = ["CPU 0", "CPU 1", "CPU 2", "CPU 3"]
-            let timeSteps = []
-            Object.values(tempData).forEach((d, i) => {
-                if (i % 2 == 0) {
-                    timeSteps.push(d.check_time)
-                }
-            })
 
             let xScale = d3.scaleTime()
-                    .domain(d3.extent(tempData.map(d => d.check_time)))
+                    .domain([new Date(timeExtent[0].getTime() - timeBand / 1.8), new Date(timeExtent[1].getTime() + timeBand / 1.8)])
                     .range([padding, this.size.width - padding])
             let xTicks = d3.axisBottom(xScale)
                 .tickFormat(timeFormat)
@@ -77,7 +72,7 @@ export default {
             let yScale = d3.scaleBand()
                 .domain(cpuList)
                 .range([padding, this.size.height - padding])
-                .padding(0.1)
+                .padding(0.03)
                 // .paddingInner(0.2);
 
             const xAxis = chartContainer.append('g')
@@ -88,6 +83,15 @@ export default {
                 .attr('transform', `translate(${padding}, 0)`)
                 .call(d3.axisLeft(yScale))
             
+            let tempExtents = []
+            tempExtents.push(d3.extent(tempDataErr.map(d => d.cpu0)))
+            tempExtents.push(d3.extent(tempDataErr.map(d => d.cpu1)))
+            tempExtents.push(d3.extent(tempDataErr.map(d => d.cpu2)))
+            tempExtents.push(d3.extent(tempDataErr.map(d => d.cpu3)))
+            const colorBand = d3.scaleLinear()
+                .domain([d3.min(tempExtents.map(d => d[0])), d3.max(tempExtents.map(d => d[1]))])
+                .range(["white", "#69b3a2"])
+            
             // heatmap blocks
             let grid = chartContainer.append('g')
                     
@@ -96,10 +100,20 @@ export default {
                     .data(tempDataErr)
                     .enter()
                     .append('rect')
-                    .attr('x', d => xScale(d.check_time))
+                    .attr('x', d =>  xScale(new Date(d.check_time.getTime() - timeBand / 2)))
                     .attr('y', yScale(item))
-                    .attr('width', 0.95 * xScale(tempData[2].check_time) - xScale(tempData[0].check_time))
+                    .attr('width', 0.98 * xScale(tempData[2].check_time) - xScale(tempData[0].check_time))
                     .attr('height', yScale.bandwidth())
+                    .attr('fill', d => {
+                        if (item == 'CPU 0')
+                            return colorBand(d['cpu0'])
+                        else if (item == 'CPU 1')
+                            return colorBand(d['cpu1'])
+                        else if (item == 'CPU 2')
+                            return colorBand(d['cpu2'])
+                        else
+                            return colorBand(d['cpu3'])
+                    })
             })
                 
             // rack grid

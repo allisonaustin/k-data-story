@@ -5,6 +5,7 @@ import { ComponentSize, Margin } from '../types';
 
 const data = await d3.csv('../../data/k_data_processed.csv');
 const rack_err = 'l7'
+const rack_norm = 'm5'
 
 export default {
     data() {
@@ -66,26 +67,26 @@ export default {
                 .attr('y', d => yScale(String(d.num)))
                 .attr('width', xScale.bandwidth())
                 .attr('height', yScale.bandwidth())
-                .attr('fill', d => (d.letter + d.num == rack_err ? '#f88379' : 'lightgray'))
+                .attr('fill', d => (d.letter + d.num == rack_err ? '#fb8072' : 'lightgray'))
                 .attr('stroke', 'white')
 
-            const lineStartX = xScale(rack_err[0]) + xScale.bandwidth() / 2;
-            const lineStartY = yScale(rack_err[1]) + yScale.bandwidth() / 2;
+            // const lineStartX = xScale(rack_err[0]) + xScale.bandwidth() / 2;
+            // const lineStartY = yScale(rack_err[1]) + yScale.bandwidth() / 2;
 
-            const lineEndX = lineStartX + this.size.width / 2; 
-            const lineEndY = lineStartY; 
+            // const lineEndX = lineStartX + this.size.width / 2; 
+            // const lineEndY = lineStartY; 
 
-            const line = chartContainer.append('line')
-                .attr('x1', lineStartX)
-                .attr('y1', lineStartY)
-                .attr('x2', lineStartX)
-                .attr('y2', lineStartY)
-                .attr('stroke', 'gray') 
-                .attr('stroke-width', 1.5)
-                .transition()
-                .duration(1000)
-                .attr('x2', lineEndX)
-                .attr('y2', lineEndY)
+            // const line = chartContainer.append('line')
+            //     .attr('x1', lineStartX)
+            //     .attr('y1', lineStartY)
+            //     .attr('x2', lineStartX)
+            //     .attr('y2', lineStartY)
+            //     .attr('stroke', 'black') 
+            //     .attr('stroke-width', 1)
+            //     .transition()
+            //     .duration(1000)
+            //     .attr('x2', lineEndX)
+            //     .attr('y2', lineEndY)
         }
             
     },

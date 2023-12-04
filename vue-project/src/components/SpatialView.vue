@@ -2,6 +2,7 @@
 import * as d3 from 'd3';
 import { isEmpty, debounce } from 'lodash';
 import { ComponentSize, Margin } from '../types';
+import { errorNode, normalNode } from '../colors';
 
 const data = await d3.csv('../../data/k_data_processed.csv');
 const rack_err = 'l7'
@@ -11,7 +12,7 @@ export default {
     data() {
         return {
             size: { width: 500, height: 500 } as ComponentSize,
-            margin: {left: 40, right: 25, top: 20, bottom: 20} as Margin,
+            margin: {left: 40, right: 0, top: 20, bottom: 20} as Margin,
         }
     }, 
     computed: {
@@ -32,6 +33,7 @@ export default {
         initChart() {
             let chartContainer = d3.select('#rack-space-svg')
                 .attr('viewBox', [0, 0, this.size.width, this.size.height])
+            const tooltip = d3.select('.tooltip')
             
             let rack_letters = 'abcdefghijklmnopqrstuvwx'.split('');;
             let rack_nums = d3.range(45, 0, -1);
@@ -67,26 +69,61 @@ export default {
                 .attr('y', d => yScale(String(d.num)))
                 .attr('width', xScale.bandwidth())
                 .attr('height', yScale.bandwidth())
-                .attr('fill', d => (d.letter + d.num == rack_err ? '#fb8072' : 'lightgray'))
+                .attr('fill', d => {
+                    if (d.letter + d.num === rack_err) {
+                        return errorNode;
+                    } else if (d.letter + d.num === rack_norm) {
+                        return normalNode;
+                    } else {
+                        return 'lightgray';
+                    }
+                })
                 .attr('stroke', 'white')
+                .attr('fill-opacity', 0.8)
 
-            // const lineStartX = xScale(rack_err[0]) + xScale.bandwidth() / 2;
-            // const lineStartY = yScale(rack_err[1]) + yScale.bandwidth() / 2;
+            grid.on('mouseover', function (event, d) {
+                    const [xPos, yPos] = d3.pointer(event);
 
-            // const lineEndX = lineStartX + this.size.width / 2; 
-            // const lineEndY = lineStartY; 
+                    if ((d.letter + d.num != rack_err) && (d.letter + d.num != rack_norm)) {
+                        d3.select(this)
+                            .attr('fill', 'gray')
+                    } else {
+                        d3.select(this)
+                            .attr('fill-opacity', 1)
+                    }
+                    
+                    tooltip.transition()
+                        .duration(200)
+                        .style('opacity', .9);
 
-            // const line = chartContainer.append('line')
-            //     .attr('x1', lineStartX)
-            //     .attr('y1', lineStartY)
-            //     .attr('x2', lineStartX)
-            //     .attr('y2', lineStartY)
-            //     .attr('stroke', 'black') 
-            //     .attr('stroke-width', 1)
-            //     .transition()
-            //     .duration(1000)
-            //     .attr('x2', lineEndX)
-            //     .attr('y2', lineEndY)
+                    // node content
+                    tooltip.html(`${d.letter + d.num}`)
+                        .style('left', `${xPos + 80}px`)
+                        .style('top', `${yPos + 300}px`)
+                        .style('opacity', 1);
+                    
+            })
+            // hide tooltip
+            .on('mouseout', function (event, d) {
+                tooltip.transition()
+                    .duration(500)
+                    .style('opacity', 0);
+
+                // resetting style
+                if ((d.letter + d.num != rack_err) && (d.letter + d.num != rack_norm)) {
+                        d3.select(this)
+                            .attr('fill', 'lightgray')
+                    } else {
+                        d3.select(this)
+                            .attr('fill-opacity', 0.8)
+                    }
+            });
+
+            grid.filter(d => (d.letter + d.num == rack_err) || (d.letter + d.num == rack_norm))
+                .attr('width', d => xScale.bandwidth() * 1.5) 
+                .attr('height', d => yScale.bandwidth() * 1.5)
+                .attr('x', d => xScale(d.letter) - (xScale.bandwidth() * 0.25)) 
+                .attr('y', d => yScale(String(d.num)) - (yScale.bandwidth() * 0.25));
         }
             
     },
@@ -111,6 +148,7 @@ export default {
     <div ref="rackViewContainer" class="chartContainer">
         <svg id="rack-space-svg">
         </svg>
+        <div class="tooltip"></div>
     </div>
 </template>
 
@@ -118,5 +156,17 @@ export default {
 .chartContainer {
     height: 500px;
     width: 500px;
+}
+.tooltip {
+    position: absolute;
+    line-height: 1;
+    font-weight: bold;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    border-radius: 2px;
+    font-size: 12px;
+    text-align: left;
+    opacity: 0;
 }
 </style>

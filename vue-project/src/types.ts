@@ -11,3 +11,4 @@ export interface ComponentSize {
     height: number;
 }
 
+export const errorNodeColor = '#fb8072'

@@ -11,4 +11,13 @@ export interface ComponentSize {
     height: number;
 }
 
-export const errorNodeColor = '#fb8072'
+export interface ContainerRect {
+    bottom: number;
+    height: number;
+    left: number;
+    right: number;
+    top: number;
+    width: number;
+    x: number;
+    y: number;
+}

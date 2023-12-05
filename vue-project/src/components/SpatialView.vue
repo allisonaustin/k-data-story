@@ -12,7 +12,7 @@ export default {
     data() {
         return {
             size: { width: 500, height: 500 } as ComponentSize,
-            margin: {left: 40, right: 0, top: 20, bottom: 20} as Margin,
+            margin: {left: 40, right: 100, top: 20, bottom: 20} as Margin,
         }
     }, 
     computed: {
@@ -27,8 +27,8 @@ export default {
     methods: {
         onResize() {
             let target = this.$refs.rackViewContainer as HTMLElement
-            if (target === undefined) return;
-            this.size = { width: target.clientWidth, height: target.clientHeight};
+            if (!target) return;
+            this.size = { width: target.clientWidth || 0, height: target.clientHeight || 0};
         },
         initChart() {
             let chartContainer = d3.select('#rack-space-svg')
@@ -41,7 +41,7 @@ export default {
 
             let xScale = d3.scaleBand()
                     .domain(rack_letters)
-                    .range([padding, this.size.width - padding])
+                    .range([padding, this.size.width - this.margin.right])
                     .padding(0.1)
                     .paddingInner(0.2);
 
@@ -98,8 +98,8 @@ export default {
 
                     // node content
                     tooltip.html(`${d.letter + d.num}`)
-                        .style('left', `${xPos + 80}px`)
-                        .style('top', `${yPos + 300}px`)
+                        .style('left', `${xPos + 60}px`)
+                        .style('top', `${yPos + 520}px`)
                         .style('opacity', 1);
                     
             })
@@ -124,6 +124,57 @@ export default {
                 .attr('height', d => yScale.bandwidth() * 1.5)
                 .attr('x', d => xScale(d.letter) - (xScale.bandwidth() * 0.25)) 
                 .attr('y', d => yScale(String(d.num)) - (yScale.bandwidth() * 0.25));
+
+
+            // annotating nodes on grid
+            const lineStartX = xScale(rack_err[0]) + xScale.bandwidth() / 2;
+            const lineStartY = yScale(rack_err[1]) + yScale.bandwidth() / 2;
+            const lineEndX = lineStartX + this.size.width / 2.5; 
+            const lineEndY = lineStartY; 
+            const line1 = chartContainer.append('line')
+                .attr('x1', lineStartX)
+                .attr('y1', lineStartY)
+                .attr('x2', lineStartX)
+                .attr('y2', lineStartY)
+                .attr('stroke', 'black') 
+                .attr('stroke-width', 1)
+                .transition()
+                .duration(1000)
+                .attr('x2', lineEndX)
+                .attr('y2', lineEndY)
+
+            const errorNote = chartContainer.append('text')
+                .attr('x', lineEndX + 10)
+                .attr('y', lineStartY + 3)
+                .attr('text-anchor', 'right')
+                .style('font-size', '10')
+                .style('font-style', 'italic')
+                .text('Error rack')
+
+            const _lineStartX = xScale(rack_norm[0]) + xScale.bandwidth() / 2;
+            const _lineStartY = yScale(rack_norm[1]) + yScale.bandwidth() / 2;
+            const _lineEndX = _lineStartX + this.size.width / 2.7; 
+            const _lineEndY = _lineStartY; 
+
+            const line2 = chartContainer.append('line')
+                .attr('x1', _lineStartX)
+                .attr('y1', _lineStartY)
+                .attr('x2', _lineStartX)
+                .attr('y2', _lineStartY)
+                .attr('stroke', 'black') 
+                .attr('stroke-width', 1)
+                .transition()
+                .duration(1000)
+                .attr('x2', _lineEndX)
+                .attr('y2', _lineEndY)
+
+            const note = chartContainer.append('text')
+                .attr('x', _lineEndX + 10)
+                .attr('y', _lineEndY + 3)
+                .attr('text-anchor', 'right')
+                .style('font-size', '10')
+                .style('font-style', 'italic')
+                .text('Normal rack')
         }
             
     },

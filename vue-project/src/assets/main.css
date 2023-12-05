@@ -54,3 +54,16 @@ a,
   font-weight: 200;
   font-size: 18px
 }
+
+.intro {
+  font-family: 'Helvetica Neue', sans-serif;
+  font-size: 14px;
+  padding: 1rem;
+  line-height: 1.3;
+}
+
+.caption {
+  font-family: 'Helvetica Neue', sans-serif;
+  font-size: 12px;
+  margin-top: 10px;
+}

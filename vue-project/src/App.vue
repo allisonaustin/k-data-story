@@ -2,6 +2,7 @@
 import SpatialView from './components/SpatialView.vue'
 import TimeSeries from './components/TimeSeries.vue'
 import HeatmapView from './components/HeatmapView.vue'
+// import HeatmapView_vol from './components/HeatmapView_vol.vue'
 
 export default {
   components: {
@@ -61,8 +62,10 @@ export default {
   <!-- Part 2 -->  
   <v-container>
     <v-row>
-    <h2>Heatmap Layout</h2>
-    <HeatmapView />
+      <h2>Heatmap Layout for Temperature</h2>
+      <HeatmapView :dataset="tempDataset" />
+      <h2>Heatmap Layout for Voltage</h2>
+      <HeatmapView :dataset="volDataset" />
     </v-row>
   </v-container>
 </template>

@@ -38,6 +38,7 @@ export default {
             let rack_letters = 'abcdefghijklmnopqrstuvwx'.split('');;
             let rack_nums = d3.range(45, 0, -1);
             let padding = 30;
+            const scale = 4;
 
             let xScale = d3.scaleBand()
                     .domain(rack_letters)
@@ -67,8 +68,8 @@ export default {
                 .append('rect')
                 .attr('x', d => xScale(d.letter))
                 .attr('y', d => yScale(String(d.num)))
-                .attr('width', xScale.bandwidth())
-                .attr('height', yScale.bandwidth())
+                .attr('width', d => (d.letter == rack_err[0] && d.num == rack_err[1]) ? xScale.bandwidth() * scale : xScale.bandwidth())
+                .attr('height', d => (d.letter == rack_err[0] && d.num == rack_err[1]) ? yScale.bandwidth() * scale : yScale.bandwidth())
                 .attr('fill', d => {
                     if (d.letter + d.num === rack_err) {
                         return errorNode;
@@ -82,25 +83,26 @@ export default {
                 .attr('fill-opacity', 0.8)
 
             grid.on('mouseover', function (event, d) {
-                    const [xPos, yPos] = d3.pointer(event);
+                const [xPos, yPos] = d3.pointer(event);
 
-                    if ((d.letter + d.num != rack_err) && (d.letter + d.num != rack_norm)) {
-                        d3.select(this)
-                            .attr('fill', 'gray')
-                    } else {
-                        d3.select(this)
-                            .attr('fill-opacity', 1)
-                    }
-                    
-                    tooltip.transition()
-                        .duration(200)
-                        .style('opacity', .9);
+                if ((d.letter + d.num != rack_err) && (d.letter + d.num != rack_norm)) {
+                    d3.select(this)
+                        .attr('fill', 'gray')
+                } else {
+                    d3.select(this)
+                        .attr('fill-opacity', 1)
+                        .style("cursor", "pointer")
+                }
+                
+                tooltip.transition()
+                    .duration(200)
+                    .style('opacity', .9);
 
-                    // node content
-                    tooltip.html(`${d.letter + d.num}`)
-                        .style('left', `${xPos + 60}px`)
-                        .style('top', `${yPos + 520}px`)
-                        .style('opacity', 1);
+                // node content
+                tooltip.html(`${d.letter + d.num}`)
+                    .style('left', `${xPos}px`)
+                    .style('top', `${yPos + 100}px`)
+                    .style('opacity', 1);
                     
             })
             // hide tooltip

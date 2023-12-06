@@ -111,6 +111,10 @@ export default {
             size: { width: 600, height: 600 } as ComponentSize,
             chartSize: { width: 500, height: 400 } as ComponentSize,
             margin: {left: 50, right: 0, top: 20, bottom: 40} as Margin,
+            errRack: 'l07',
+            normRack: 'm05',
+            showErrReadings: true,
+            showNormReadings: true,
         }
     }, 
     computed: {
@@ -138,6 +142,23 @@ export default {
             let target = this.$refs.chartContainer as HTMLElement
             if (!target) return;
             this.size = { width: target.clientWidth || 0, height: target.clientHeight || 0};
+        },
+        updateChart() {
+            const errLines = d3.select('#err-lines-group')
+            const normLines = d3.select('#lines-group')
+
+            if (this.showErrReadings) {
+                errLines.style('display', 'block')
+            } 
+            if (!this.showErrReadings) {
+                errLines.style('display', 'none')
+            }
+            if (this.showNormReadings) {
+                normLines.style('display', 'block')
+            } 
+            if (!this.showNormReadings) {
+                normLines.style('display', 'none')
+            }
         },
         initChart() {
             let chartContainer = this.dataset == 'temp' ? d3.select('#temp-time-series-svg') : d3.select('#vol-time-series-svg')
@@ -218,7 +239,9 @@ export default {
                 .attr('fill', errorPeriod)
                 .attr('opacity', 0.3)
 
-            const linesGroup = chartContainer.append('g');
+            const linesGroup = chartContainer.append('g').attr('id', 'lines-group');
+            const errLinesGroup = chartContainer.append('g').attr('id', 'err-lines-group');
+
             // normal readings
             const norm_lines = Object.keys(data_n).forEach(node => {
                 const path  = linesGroup.append('path')
@@ -247,37 +270,41 @@ export default {
 
                     // tooltip to display node
                     path.on('mouseover', function (event, d) {
-                        const [xPos, yPos] = d3.pointer(event);
-                        d3.select(this).style("cursor", "pointer");
+                        if (linesGroup.style('display') !== 'none') {
+                            const [xPos, yPos] = d3.pointer(event);
+                            d3.select(this).style("cursor", "pointer");
 
-                        // showing datapoints 
-                        dataPoints
-                            .filter(point => data_n[node].some(dataPoint => dataPoint.value === point.value && dataPoint.check_time === point.check_time))
-                            .style('opacity', 1);
+                            // showing datapoints 
+                            dataPoints
+                                .filter(point => data_n[node].some(dataPoint => dataPoint.value === point.value && dataPoint.check_time === point.check_time))
+                                .style('opacity', 1);
 
-                        tooltip.transition()
-                            .duration(200)
-                            .style('opacity', .9);
+                            tooltip.transition()
+                                .duration(200)
+                                .style('opacity', .9);
 
-                        tooltip.html(`${String(node).includes('temp') ? node.slice(0, -5) : node.slice(0, -4)}`) // removing temp/vol from tooltip
-                            .style('left', `${xPos + chartContainer.node().getBoundingClientRect().left}px`)
-                            .style('top', `${yPos + chartContainer.node().getBoundingClientRect().top}px`)
-                            .style('opacity', 1);
+                            const lineEnd = path.node().getPointAtLength(path.node().getTotalLength());
 
-                        errLinesGroup.selectAll('path')
-                            .filter(otherPath => otherPath !== path.node())
-                            .attr('stroke', 'lightgray')
-                            .attr('stroke-opacity', 0.6);
+                            tooltip.html(`${String(node).includes('temp') ? node.slice(0, -5) : node.slice(0, -4)}`) // removing temp/vol from tooltip
+                                .style('left', `${lineEnd.x + chartContainer.node().getBoundingClientRect().left}px`)
+                                .style('top', `${lineEnd.y + chartContainer.node().getBoundingClientRect().top}px`)
+                                .style('opacity', 1);
 
-                        linesGroup.selectAll('path')
-                            .filter(otherPath => otherPath !== path.node())
-                            .attr('stroke', 'lightgray')
-                            .attr('stroke-opacity', 0.6);
+                            errLinesGroup.selectAll('path')
+                                .filter(otherPath => otherPath !== path.node())
+                                .attr('stroke', 'lightgray')
+                                .attr('stroke-opacity', 0.6);
 
-                        // highlighting the hovered line
-                        path.attr('stroke-opacity', 1)
-                            .attr('stroke', normalNode)
-                            .attr('stroke-width', 2);
+                            linesGroup.selectAll('path')
+                                .filter(otherPath => otherPath !== path.node())
+                                .attr('stroke', 'lightgray')
+                                .attr('stroke-opacity', 0.6);
+
+                            // highlighting the hovered line
+                            path.attr('stroke-opacity', 1)
+                                .attr('stroke', normalNode)
+                                .attr('stroke-width', 2);
+                        }
                     })
                     .on('mouseout', function () {
                         dataPoints.style('opacity', 0);
@@ -310,8 +337,7 @@ export default {
                         })
                         .attr('stroke-dashoffset', 0);
                 });
-
-            const errLinesGroup = chartContainer.append('g');
+            
             // readings containing error node
             const err_lines = Object.keys(data).forEach(node => {
                 const path  = errLinesGroup.append('path')
@@ -351,10 +377,12 @@ export default {
                         tooltip.transition()
                             .duration(200)
                             .style('opacity', .9);
+
+                        const lineEnd = path.node().getPointAtLength(path.node().getTotalLength());
         
                         tooltip.html(`${String(node).includes('temp') ? node.slice(0, -5) : node.slice(0, -4)}`)
-                            .style('left', `${xPos + chartContainer.node().getBoundingClientRect().left  + 150}px`)
-                            .style('top', `${yPos + chartContainer.node().getBoundingClientRect().top + 400}px`)
+                            .style('left', `${lineEnd.x + chartContainer.node().getBoundingClientRect().left}px`)
+                            .style('top', `${lineEnd.y + chartContainer.node().getBoundingClientRect().top}px`)
                             .style('opacity', 1);
                     
                         errLinesGroup.selectAll('path')
@@ -403,7 +431,7 @@ export default {
                         })
                         .attr('stroke-dashoffset', 0);
                 });
-            
+                
                 // let legendX = this.margin.right + this.chartSize.height - this.margin.bottom
                 // let legendY = this.margin.bottom + this.margin.top
                 // let legendSymbolSize = 10
@@ -464,7 +492,7 @@ export default {
                         .attr('text-anchor', 'middle')
                         .style('font-size', '10')
                         .style('font-style', 'italic')
-                        .text('CPU internal error occurs at 14:52:00')
+                        .text('CPU error occurs at 14:52:00')
                 }
         }
     },
@@ -489,10 +517,18 @@ export default {
 <template>
     <div ref="chartContainer" class="container">
         <div v-if="dataset=='temp'">
-            <svg id="temp-time-series-svg"></svg>
+            <svg id="temp-time-series-svg" ref="timeSeriesTemp"></svg>
         </div>
         <div v-else>
-            <svg id="vol-time-series-svg"></svg>
+            <svg id="vol-time-series-svg" ref="volSeriesTemp"></svg>
+        </div>
+        <div class="checkbox-container">
+            <label>
+            <input type="checkbox" checked v-model="showErrReadings" @change="updateChart" /> {{ errRack }}
+            </label>
+            <label>
+            <input type="checkbox" checked v-model="showNormReadings" @change="updateChart" /> {{ normRack }}
+            </label>
         </div>
         <div class="tooltip"></div>
     </div>
@@ -518,5 +554,12 @@ export default {
     font-size: 12px;
     text-align: left;
     opacity: 0;
+}
+
+.checkbox-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-size: 12px;
 }
 </style>

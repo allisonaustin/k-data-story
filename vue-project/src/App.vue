@@ -13,7 +13,7 @@ export default {
   data() {
     return {
       tempDataset: 'temp',
-      volDataset: 'vol'
+      volDataset: 'vol',
     }
   },
 }
@@ -42,23 +42,25 @@ export default {
     </div>
   </div>
   <!-- Part 1 -->
-  <v-container id="main-container" class="d-flex flex-column flex-nowrap" fluid>
-    <v-row no-gutters class="left-side">
-      <v-col>
-        <h2>Rack Layout</h2>
-        <div class="caption">
-          <p>This is a layout of the HPC system. Each square in the grid represents a compute rack. There are a total of 864 racks in the K computer system and each rack contains two BPs and each BP contains 12 system boards (SBs). </p>
+  <div class="full-width container">
+    <div id="main-container" class="fixed-container">
+      <div class="fixed-left">
+        <div id="rack-space">
+          <h2>Rack Layout</h2>
+          <div class="caption">
+            <p>This is a layout of the HPC system. Each square in the grid represents a compute rack. There are a total of 864 racks in the K computer system and each rack contains two BPs and each BP contains 12 system boards (SBs). </p>
+          </div>
+          <SpatialView/>
         </div>
-        <SpatialView />
-      </v-col>
-    </v-row>
-    <v-row no-gutters class="right-side">
-      <v-col>
-        <TimeSeries :dataset="tempDataset" />
-        <TimeSeries :dataset="volDataset" />
-      </v-col>
-    </v-row>
-  </v-container>
+      </div>
+      <div class="scrollable-right">
+        <div class="inner">
+          <TimeSeries id="timeSeriesTemp" :dataset="tempDataset" />
+          <TimeSeries id="timeSeriesVol" :dataset="volDataset" />
+        </div>
+      </div>
+    </div>
+  </div>
   <!-- Part 2 -->  
   <v-container  class="d-flex flex-column flex-nowrap">
     <v-row>
@@ -71,22 +73,30 @@ export default {
 </template>
 
 <style scoped>
-#main-container{
+.fixed-container {
   display: flex;
-  width: 100%;
-  height: 100vh;
-  overflow: hidden;
+  padding-bottom: 40px;
 }
 
-.left-side {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px;
+#rack-space {
+  position: sticky;
+  top: 0;
+  padding-top: 20px;
 }
 
-.right-side {
-  flex: 1;
-  overflow-y: auto; 
+.fixed-left {
+  flex: 0 0 auto;
   padding: 20px; 
+  width: auto;
+  max-width: 500px;
+  text-align: left;
+  position: sticky;
+  top: 0;
+}
+
+.scrollable-right {
+  flex: 1;
+  padding-left: 40px;
+  padding-top: 40px;
 }
 </style>

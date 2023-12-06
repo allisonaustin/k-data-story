@@ -12,6 +12,8 @@ const rack_err = 'l07'
 const rack_nor = 'm05'
 const bp_err = 0
 const sb_err = 6
+const bp_select = 0
+const sb_select = 0
 const errTime = new Date("2019-05-28 14:52:00")
 function data_group(inputTable, node: string, type: string) {
     let return_table_bf = []
@@ -63,7 +65,7 @@ export default {
             svgSizeBf: { width: 245, height: 100 } as ComponentSize,
             svgSizeAf: { width: 720, height: 100 } as ComponentSize,
             colorbarSize: {width: 250, height: 10} as ComponentSize,
-            margin: {left: 40, right: 10, top:0, bottom: 20} as Margin,
+            margin: {left: 33, right: 10, top:0, bottom: 20} as Margin,
         } }, 
     computed: {
         rerender() {
@@ -100,7 +102,7 @@ export default {
                 
                 tooltip.html(`${item} bp${bp_err} sb${sb_err} ${info}`)
                     .style("left", `${event.x}px`)
-                    .style("top", `${event.y+1000}px`)
+                    .style("top", `${event.y+1200}px`)
             }
             function mouseout(event, d) {
                 tooltip.transition()
@@ -141,8 +143,8 @@ export default {
                 let yScale = d3.scaleBand()
                     .domain([0, 1, 2, 3])
                     .range([0, svgSize.height - para.margin.bottom - para.margin.top])
-                    .padding(0.1)
-                    .paddingInner(0.2);
+                    // .padding(0.1) 
+                    .paddingInner(0.1);
                 
                 if (show_cpu) {
                     const yTicks = d3.axisLeft(yScale)
@@ -176,7 +178,7 @@ export default {
                         .enter()
                         .append('rect')
                             .attr("class", d => {
-                                return `t_${d.time_idx}_${index}`
+                                return `t_${d.time_idx}_${index}_${bp}_${sb}`
                             })
                             .attr('x', d =>  xScale(new Date(d.check_time.getTime()) - timeBand / 2))
                             .attr('y', () => {
@@ -251,7 +253,8 @@ export default {
             const colorAxis = colorbar.append("g")
             .attr('transform', `translate(${0}, ${this.colorbarSize.height})`)
             .call(colorAxisTicks)
-
+            const dropDown = d3.select("#dropdown_container").append("select")
+                    .attr("name", "country-list");
             const chartContainer = d3.select('#heatmap-svg')
                 .attr('viewBox', [0, 0, this.svgSizeBf.width, this.svgSizeBf.height])                
             chart_init(chartContainer, this, bp_err, sb_err, temp_table_err_bf, 'temp', true, true, false)
@@ -259,6 +262,13 @@ export default {
             const chartContainer_af = d3.select('#heatmap-svg-af')
                 .attr('viewBox', [0, 0, this.svgSizeAf.width, this.svgSizeAf.height])
             chart_init(chartContainer_af, this, bp_err, sb_err, temp_table_err_af, 'temp', false, false, false)
+            const chartContainerSelect = d3.select('#heatmap-svg-select')
+                .attr('viewBox', [0, 0, this.svgSizeBf.width, this.svgSizeBf.height])                
+            chart_init(chartContainerSelect, this, bp_select, sb_select, temp_table_err_bf, 'temp', true, true, true)
+
+            const chartContainerSelect_af = d3.select('#heatmap-svg-select-af')
+                .attr('viewBox', [0, 0, this.svgSizeAf.width, this.svgSizeAf.height])
+            chart_init(chartContainerSelect_af, this, bp_select, sb_select, temp_table_err_af, 'temp', false, false, true)
 
             const chartContainerNor_bf = d3.select('#heatmap-svg-nor')
                 .attr('viewBox', [0, 0, this.svgSizeBf.width, this.svgSizeBf.height])
@@ -266,6 +276,12 @@ export default {
             const chartContainerNor_af = d3.select('#heatmap-svg-nor-af')
                 .attr('viewBox', [0, 0, this.svgSizeAf.width, this.svgSizeAf.height])
             chart_init(chartContainerNor_af, this, bp_err, sb_err, temp_table_nor_af, 'temp', false, false, true)
+            const chartContainerNorSelect_bf = d3.select('#heatmap-svg-nor-select')
+                .attr('viewBox', [0, 0, this.svgSizeBf.width, this.svgSizeBf.height])
+            chart_init(chartContainerNorSelect_bf, this, bp_select, sb_select, temp_table_nor_bf, 'temp', true)
+            const chartContainerNorSelect_af = d3.select('#heatmap-svg-nor-select-af')
+                .attr('viewBox', [0, 0, this.svgSizeAf.width, this.svgSizeAf.height])
+            chart_init(chartContainerNorSelect_af, this, bp_select, sb_select, temp_table_nor_af, 'temp', false, false, true)
             
             // voltage
             const colorbarVol = d3.select("#vol-colorbar")
@@ -297,8 +313,12 @@ export default {
             const colorAxisVol = colorbarVol.append("g")
             .attr('transform', `translate(${0}, ${this.colorbarSize.height})`)
             .call(colorAxisTicksVol)
+            const parent = d3.select("#temp-heat-container")
+            const body = parent.append("div")
+                .style("overflow-x", "scroll")
+                .style("-webkit-overflow-scrolling", "touch");
 
-
+           
             const chartContainerVol = d3.select('#heatmap-svg-vol')
                 .attr('viewBox', [0, 0, this.svgSizeBf.width, this.svgSizeBf.height])                
             chart_init(chartContainerVol, this, bp_err, sb_err, vol_table_err_bf, 'vol', true, true, false)
@@ -337,20 +357,33 @@ export default {
 }
 </script>
 <template>
-    <div ref="heatmapContainer" class="heatmapContainer">
+    <div ref="heatmapContainer" class="heatmapContainer" overflow-x="scroll">
         <div v-if="dataset == 'temp'" id = "root">
-            <svg id="temp-colorbar" class = "colorbar-container"></svg>
             <div>
+                <svg id="temp-colorbar" class = "colorbar-container"></svg>
+                <svg id="dropdown_container"></svg>
+            </div>
+            <div id="temp-heat-container">
+                <h3>Error Rack</h3>
+                <p>Error bp and Error Sb</p>
                 <svg id="heatmap-svg" class = "svg-container-bf"></svg>
                 <svg id="heatmap-svg-af" class = "svg-container-af"></svg>
+                <p>Selected bp and Selected Sb</p>
+                <svg id="heatmap-svg-select" class = "svg-container-bf"></svg>
+                <svg id="heatmap-svg-select-af" class = "svg-container-af"></svg>
+                <h3>Normal Rack</h3>
+                <p>Error bp and Error Sb</p>
                 <svg id="heatmap-svg-nor" class = "svg-container-bf"></svg>
                 <svg id="heatmap-svg-nor-af" class = "svg-container-af"></svg>
+                <p>Selected bp and Selected Sb</p>
+                <svg id="heatmap-svg-nor-select" class = "svg-container-bf"></svg>
+                <svg id="heatmap-svg-nor-select-af" class = "svg-container-af"></svg>
             </div>
             
         </div>
         <div v-else>
             <svg id="vol-colorbar" class = "colorbar-container"></svg>
-            <div>
+            <div id="vol-heat-container">
                 <svg id="heatmap-svg-vol" class = "svg-container-bf"></svg>
                 <svg id="heatmap-svg-vol-af" class = "svg-container-af"></svg>
                 <svg id="heatmap-svg-vol-nor" class = "svg-container-bf"></svg>
@@ -366,12 +399,12 @@ export default {
 
 <style scoped>
 .heatmapContainer {
-    height: 250px;
+    height: 660px;
     width: 1050px;
 }
 .svg-container-bf {
     height: 105px;
-    width: 255px; 
+    width: 250px; 
 }
 .svg-container-af {
     height: 105px;
@@ -380,6 +413,10 @@ export default {
 .colorbar-container {
     height: 20px;
     width: 250px; 
+}
+#dropdown_container {
+  width: 50px;
+  height: 2px;
 }
 .tooltip-heat{
     position: absolute;

@@ -60,7 +60,7 @@ export default {
     </v-row>
   </v-container>
   <!-- Part 2 -->  
-  <v-container>
+  <v-container  class="d-flex flex-column flex-nowrap">
     <v-row>
       <h2>Heatmap Layout for Temperature</h2>
       <HeatmapView :dataset="tempDataset" />

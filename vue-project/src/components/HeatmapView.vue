@@ -62,7 +62,8 @@ export default {
             svgSize: { width: 760, height: 100 } as ComponentSize,
             svgSizeBf: { width: 245, height: 100 } as ComponentSize,
             svgSizeAf: { width: 720, height: 100 } as ComponentSize,
-            margin: {left: 40, right: 10, top:0, bottom: 0} as Margin,
+            colorbarSize: {width: 250, height: 10} as ComponentSize,
+            margin: {left: 40, right: 10, top:0, bottom: 20} as Margin,
         } }, 
     computed: {
         rerender() {
@@ -85,28 +86,25 @@ export default {
             // let timeExtent = d3.extent(temp_table_err_bf.map(d => d.check_time))
             let cpuList = ["CPU 0", "CPU 1", "CPU 2", "CPU 3"]
             let ibcList = ["IBC 0", "IBC 1", "IBC 2", "IBC 3"]
-            let extent = [14, 30]
-            const colorBandTemp = d3.scaleLinear()
-                .domain([14, 20])
-                .range(["white", "black"])
-            const colorBandVol= d3.scaleLinear()
-                .domain([12, 13])
-                .range(["white", "black"])
+            let temp_extent = [14, 22]
+            const colorBandTemp = d3.scaleSequential(["white", "red"]).domain(temp_extent)
+            let vol_extent = [12, 12.5]
+            const colorBandVol= d3.scaleSequential(["white", "blue"]).domain(vol_extent)
             
             // tooltip event
             let tooltip = d3.select(".tooltip-heat")
-            function mouseover(event, item) {
+            function mouseover(event, item, info) {
                 tooltip.transition()
                     .duration(100)
                     .style("opacity", 1);
                 
-                tooltip.html(`${item} bp ${bp_err} sb ${sb_err}`)
+                tooltip.html(`${item} bp${bp_err} sb${sb_err} ${info}`)
                     .style("left", `${event.x}px`)
                     .style("top", `${event.y+1000}px`)
             }
             function mouseout(event, d) {
                 tooltip.transition()
-                    .duration('100')
+                    .duration(100)
                     .style("opacity", 0);
             }
             
@@ -126,7 +124,7 @@ export default {
                 let xTicks = d3.axisBottom(xScale)
                     .tickFormat(timeFormat)
                     .ticks(d3.timeMinute.every(15))
-                    .tickSize(0)
+                    // .tickSize(0)
 
                
                 if (show_time) {
@@ -139,14 +137,12 @@ export default {
                     }
                     xAxis 
                         .call(xTicks)
-                        .selectAll('text')
-                        .attr('transform', 'rotate(-45)') 
-                        .style('text-anchor', 'end') 
                 }
                 let yScale = d3.scaleBand()
                     .domain([0, 1, 2, 3])
                     .range([0, svgSize.height - para.margin.bottom - para.margin.top])
-
+                    .padding(0.1)
+                    .paddingInner(0.2);
                 
                 if (show_cpu) {
                     const yTicks = d3.axisLeft(yScale)
@@ -155,7 +151,6 @@ export default {
                                 return cpuList[d]
                             }
                             if (dataset == 'vol') {
-                                console.log('vol')
                                 return ibcList[d]
                             }
 
@@ -209,17 +204,17 @@ export default {
                                 .duration(100)
                                 .attr('opacity', 0.85);
                             if (dataset == 'temp') {
-                                mouseover(event, `CPU ${index}`)
+                                mouseover(event, `CPU ${index}`, `${d[`bp${bp}_sb${sb}_cpu_${index}_temp`]} °C`)
                             }
                             else {
-                                mouseover(event, `IBC ${index}`)
+                                mouseover(event, `IBC ${index}`, `${d[`bp${bp}_sb${sb}_ibc_${index}_vol`]} V`)
                             }
                             
                         })
                         .on('mouseout', function (event, d) {
                             d3.selectAll('.' + this.getAttribute('class'))
                                 .transition()
-                                .duration('100')
+                                .duration(100)
                                 .attr('opacity', '1');
                             mouseout(event, d)
                         });
@@ -227,6 +222,36 @@ export default {
                 
             }
             // temp
+            const colorbar = d3.select("#temp-colorbar")
+            let defs = colorbar.append("defs")
+            let linearGradient = defs.append("linearGradient")
+                .attr("id", "linear-gradient");
+            //Set the color for the start (0%)
+            linearGradient.selectAll("stop")
+                .data(colorBandTemp.ticks().map((t, i, n) => ({ offset: `${100*i/n.length}%`, color: colorBandTemp(t) })))    
+                .enter()
+                .append("stop")
+                .attr("offset", d => d.offset)
+                .attr("stop-color", d => d.color);
+            
+            let rect = colorbar.append('rect')
+                .attr('x', this.margin.left)
+                .attr('y', 0)
+                .attr('width', this.colorbarSize.width - this.margin.left - this.margin.right)
+                .attr('height', this.colorbarSize.height)
+                .style("fill", "url(#linear-gradient)");
+
+            const colorAxisScale = d3.scaleLinear()
+                .domain(colorBandTemp.domain())
+                .range([this.margin.left, this.colorbarSize.width - this.margin.right])
+            
+            const colorAxisTicks = d3.axisBottom(colorAxisScale)
+                .ticks(4) 
+                .tickSize(-this.colorbarSize.height)
+            const colorAxis = colorbar.append("g")
+            .attr('transform', `translate(${0}, ${this.colorbarSize.height})`)
+            .call(colorAxisTicks)
+
             const chartContainer = d3.select('#heatmap-svg')
                 .attr('viewBox', [0, 0, this.svgSizeBf.width, this.svgSizeBf.height])                
             chart_init(chartContainer, this, bp_err, sb_err, temp_table_err_bf, 'temp', true, true, false)
@@ -243,6 +268,37 @@ export default {
             chart_init(chartContainerNor_af, this, bp_err, sb_err, temp_table_nor_af, 'temp', false, false, true)
             
             // voltage
+            const colorbarVol = d3.select("#vol-colorbar")
+            let defsVol = colorbarVol.append("defs")
+            let linearGradientVol = defsVol.append("linearGradient")
+                .attr("id", "linear-gradient-vol");
+
+            linearGradientVol.selectAll("stop")
+                .data(colorBandVol.ticks().map((t, i, n) => ({ offset: `${100*i/n.length}%`, color: colorBandVol(t) })))    
+                .enter()
+                .append("stop")
+                .attr("offset", d => d.offset)
+                .attr("stop-color", d => d.color);
+            
+            let rectVol = colorbarVol.append('rect')
+                .attr('x', this.margin.left)
+                .attr('y', 0)
+                .attr('width', this.colorbarSize.width - this.margin.left - this.margin.right)
+                .attr('height', this.colorbarSize.height)
+                .style("fill", "url(#linear-gradient-vol)");
+
+            const colorAxisScaleVol = d3.scaleLinear()
+                .domain(colorBandVol.domain())
+                .range([this.margin.left, this.colorbarSize.width - this.margin.right])
+            
+            const colorAxisTicksVol = d3.axisBottom(colorAxisScaleVol)
+                .ticks(4) 
+                .tickSize(-this.colorbarSize.height)
+            const colorAxisVol = colorbarVol.append("g")
+            .attr('transform', `translate(${0}, ${this.colorbarSize.height})`)
+            .call(colorAxisTicksVol)
+
+
             const chartContainerVol = d3.select('#heatmap-svg-vol')
                 .attr('viewBox', [0, 0, this.svgSizeBf.width, this.svgSizeBf.height])                
             chart_init(chartContainerVol, this, bp_err, sb_err, vol_table_err_bf, 'vol', true, true, false)
@@ -283,16 +339,24 @@ export default {
 <template>
     <div ref="heatmapContainer" class="heatmapContainer">
         <div v-if="dataset == 'temp'" id = "root">
-            <svg id="heatmap-svg" class = "svg-container-bf"></svg>
-            <svg id="heatmap-svg-af" class = "svg-container-af"></svg>
-            <svg id="heatmap-svg-nor" class = "svg-container-bf"></svg>
-            <svg id="heatmap-svg-nor-af" class = "svg-container-af"></svg>
+            <svg id="temp-colorbar" class = "colorbar-container"></svg>
+            <div>
+                <svg id="heatmap-svg" class = "svg-container-bf"></svg>
+                <svg id="heatmap-svg-af" class = "svg-container-af"></svg>
+                <svg id="heatmap-svg-nor" class = "svg-container-bf"></svg>
+                <svg id="heatmap-svg-nor-af" class = "svg-container-af"></svg>
+            </div>
+            
         </div>
         <div v-else>
-            <svg id="heatmap-svg-vol" class = "svg-container-bf"></svg>
-            <svg id="heatmap-svg-vol-af" class = "svg-container-af"></svg>
-            <svg id="heatmap-svg-vol-nor" class = "svg-container-bf"></svg>
-            <svg id="heatmap-svg-vol-nor-af" class = "svg-container-af"></svg>
+            <svg id="vol-colorbar" class = "colorbar-container"></svg>
+            <div>
+                <svg id="heatmap-svg-vol" class = "svg-container-bf"></svg>
+                <svg id="heatmap-svg-vol-af" class = "svg-container-af"></svg>
+                <svg id="heatmap-svg-vol-nor" class = "svg-container-bf"></svg>
+                <svg id="heatmap-svg-vol-nor-af" class = "svg-container-af"></svg>
+            </div>
+            
         </div>
         
         <div class = "tooltip-heat">
@@ -302,16 +366,20 @@ export default {
 
 <style scoped>
 .heatmapContainer {
-    height: 220px;
-    width: 2100px;
+    height: 250px;
+    width: 1050px;
 }
 .svg-container-bf {
-    height: 102px;
+    height: 105px;
     width: 255px; 
 }
 .svg-container-af {
-    height: 102px;
+    height: 105px;
     width: 730px; 
+}
+.colorbar-container {
+    height: 20px;
+    width: 250px; 
 }
 .tooltip-heat{
     position: absolute;

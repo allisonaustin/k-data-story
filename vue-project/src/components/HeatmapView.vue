@@ -62,8 +62,8 @@ export default {
         return {
             size: { width: 800, height: 500 } as ComponentSize,
             svgSize: { width: 760, height: 100 } as ComponentSize,
-            svgSizeBf: { width: 245, height: 100 } as ComponentSize,
-            svgSizeAf: { width: 720, height: 100 } as ComponentSize,
+            svgSizeBf: { width: 145, height: 100 } as ComponentSize,
+            svgSizeAf: { width: 400, height: 100 } as ComponentSize,
             colorbarSize: {width: 250, height: 10} as ComponentSize,
             margin: {left: 33, right: 10, top:0, bottom: 20} as Margin,
         } }, 
@@ -102,7 +102,7 @@ export default {
                 
                 tooltip.html(`${item} bp${bp} sb${sb} ${info}`)
                     .style("left", `${event.x}px`)
-                    .style("top", `${event.y+1200}px`)
+                    .style("top", `${event.y+2000}px`)
             }
             function mouseout(event, d) {
                 tooltip.transition()
@@ -258,25 +258,7 @@ export default {
             const colorAxis = colorbar.append("g")
             .attr('transform', `translate(${0}, ${this.colorbarSize.height})`)
             .call(colorAxisTicks)
-            let allBp = [0, 1]
-            let allSb = [...Array(12).keys()];
-            let dropDown = d3.select("#selectButton").selectAll('myOptions')
-     	        .data(allBp)
-                .enter()
-    	        .append('option')
-                .text((d) => { 
-                    return `BP${d}`; 
-                }) // text showed in the menu
-                .attr("value", function (d) { return d; }) // corresponding value returned by the button
-            let dropDownSb = d3.select("#selectButtonSb").selectAll('Options')
-     	        .data(allSb)
-                .enter()
-    	        .append('option')
-                .text((d) => { 
-                    return `SB${d}`; 
-                }) // text showed in the menu
-                .attr("value", function (d) { return d; })
-            console.log(d3.select("#selectButton").node())
+            
             let parameter = this;
             d3.select("#selectButton").on("change", function(d) {
                 let selectedOption = d3.select(this).property("value")
@@ -295,116 +277,44 @@ export default {
             const chartContainer_af = d3.select('#heatmap-svg-af')
                 .attr('viewBox', [0, 0, this.svgSizeAf.width, this.svgSizeAf.height])
             chart_init(chartContainer_af, this, bp_err, sb_err, temp_table_err_af, 'temp', false, false, true)
-            const chartContainerSelect = d3.select('#heatmap-svg-select')
-                .attr('viewBox', [0, 0, this.svgSizeBf.width, this.svgSizeBf.height])                
-            chart_init(chartContainerSelect, this, bp_select, sb_select, temp_table_err_bf, 'temp', true, true, true)
 
-            const chartContainerSelect_af = d3.select('#heatmap-svg-select-af')
-                .attr('viewBox', [0, 0, this.svgSizeAf.width, this.svgSizeAf.height])
-            chart_init(chartContainerSelect_af, this, bp_select, sb_select, temp_table_err_af, 'temp', false, false, true)
+            function chart_bpsb(bp: number, sb: number) {
+                let chartContainerBf = d3.select(`#heatmap-bp${bp}-sb${sb}-bf`)
+                .attr('viewBox', [0, 0, parameter.svgSizeBf.width, parameter.svgSizeBf.height])                
+                chart_init(chartContainerBf, parameter, bp, sb, temp_table_err_bf, 'temp', true, true, true)
 
-            const chartContainerNor_bf = d3.select('#heatmap-svg-nor')
-                .attr('viewBox', [0, 0, this.svgSizeBf.width, this.svgSizeBf.height])
-            chart_init(chartContainerNor_bf, this, bp_err, sb_err, temp_table_nor_bf, 'temp', true)
-            const chartContainerNor_af = d3.select('#heatmap-svg-nor-af')
-                .attr('viewBox', [0, 0, this.svgSizeAf.width, this.svgSizeAf.height])
-            chart_init(chartContainerNor_af, this, bp_err, sb_err, temp_table_nor_af, 'temp', false, false, true)
-            const chartContainerNorSelect_bf = d3.select('#heatmap-svg-nor-select')
-                .attr('viewBox', [0, 0, this.svgSizeBf.width, this.svgSizeBf.height])
-            chart_init(chartContainerNorSelect_bf, this, bp_select, sb_select, temp_table_nor_bf, 'temp', true)
-            const chartContainerNorSelect_af = d3.select('#heatmap-svg-nor-select-af')
-                .attr('viewBox', [0, 0, this.svgSizeAf.width, this.svgSizeAf.height])
-            chart_init(chartContainerNorSelect_af, this, bp_select, sb_select, temp_table_nor_af, 'temp', false, false, true)
-            
-            // voltage
-            const colorbarVol = d3.select("#vol-colorbar")
-            let defsVol = colorbarVol.append("defs")
-            let linearGradientVol = defsVol.append("linearGradient")
-                .attr("id", "linear-gradient-vol");
-
-            linearGradientVol.selectAll("stop")
-                .data(colorBandVol.ticks().map((t, i, n) => ({ offset: `${100*i/n.length}%`, color: colorBandVol(t) })))    
-                .enter()
-                .append("stop")
-                .attr("offset", d => d.offset)
-                .attr("stop-color", d => d.color);
-            
-            let rectVol = colorbarVol.append('rect')
-                .attr('x', this.margin.left)
-                .attr('y', 0)
-                .attr('width', this.colorbarSize.width - this.margin.left - this.margin.right)
-                .attr('height', this.colorbarSize.height)
-                .style("fill", "url(#linear-gradient-vol)");
-
-            const colorAxisScaleVol = d3.scaleLinear()
-                .domain(colorBandVol.domain())
-                .range([this.margin.left, this.colorbarSize.width - this.margin.right])
-            
-            const colorAxisTicksVol = d3.axisBottom(colorAxisScaleVol)
-                .ticks(4) 
-                .tickSize(-this.colorbarSize.height)
-            const colorAxisVol = colorbarVol.append("g")
-            .attr('transform', `translate(${0}, ${this.colorbarSize.height})`)
-            .call(colorAxisTicksVol)
-            const parent = d3.select("#temp-heat-container")
-            const body = parent.append("div")
-                .style("overflow-x", "scroll")
-                .style("-webkit-overflow-scrolling", "touch");
-
-           
-            const chartContainerVol = d3.select('#heatmap-svg-vol')
-                .attr('viewBox', [0, 0, this.svgSizeBf.width, this.svgSizeBf.height])                
-            chart_init(chartContainerVol, this, bp_err, sb_err, vol_table_err_bf, 'vol', true, true, true)
-
-            const chartContainerVol_af = d3.select('#heatmap-svg-vol-af')
-                .attr('viewBox', [0, 0, this.svgSizeAf.width, this.svgSizeAf.height])
-            chart_init(chartContainerVol_af, this, bp_err, sb_err, vol_table_err_af, 'vol', false, false, true)
-
-            const chartContainerNorVol_bf = d3.select('#heatmap-svg-vol-nor')
-                .attr('viewBox', [0, 0, this.svgSizeBf.width, this.svgSizeBf.height])
-            chart_init(chartContainerNorVol_bf, this, bp_err, sb_err, vol_table_nor_bf, 'vol', true)
-            const chartContainerNorVol_af = d3.select('#heatmap-svg-vol-nor-af')
-                .attr('viewBox', [0, 0, this.svgSizeAf.width, this.svgSizeAf.height])
-            chart_init(chartContainerNorVol_af, this, bp_err, sb_err, vol_table_nor_af, 'vol', false, false, true)
-
-            const chartContainerVolSelect = d3.select('#heatmap-svg-vol-select')
-                .attr('viewBox', [0, 0, this.svgSizeBf.width, this.svgSizeBf.height])                
-            chart_init(chartContainerVolSelect, this, bp_select, sb_select, vol_table_err_bf, 'vol', true, true, true)
-
-            const chartContainerVolSelect_af = d3.select('#heatmap-svg-vol-select-af')
-                .attr('viewBox', [0, 0, this.svgSizeAf.width, this.svgSizeAf.height])
-            chart_init(chartContainerVolSelect_af, this, bp_select, sb_select, vol_table_err_af, 'vol', false, false, true)
-
-            const chartContainerNorVolSelect_bf = d3.select('#heatmap-svg-vol-nor-select')
-                .attr('viewBox', [0, 0, this.svgSizeBf.width, this.svgSizeBf.height])
-            chart_init(chartContainerNorVolSelect_bf, this, bp_select, sb_select, vol_table_nor_bf, 'vol', true)
-            const chartContainerNorVolSelect_af = d3.select('#heatmap-svg-vol-nor-select-af')
-                .attr('viewBox', [0, 0, this.svgSizeAf.width, this.svgSizeAf.height])
-            chart_init(chartContainerNorVolSelect_af, this, bp_select, sb_select, vol_table_nor_af, 'vol', false, false, true)  
-            
-            function update(para, bp, sb) {
-                chart_init(chartContainerSelect, para, bp, sb, temp_table_err_bf, 'temp', true, true, true)
-                    chart_init(chartContainerSelect_af, para, bp, sb, temp_table_err_af, 'temp', false, false, true)
-                    chart_init(chartContainerNorSelect_bf, para, bp, sb, temp_table_nor_bf, 'temp', true)
-                    chart_init(chartContainerNorSelect_af, para, bp, sb, temp_table_nor_af, 'temp', false, false, true)
-                    
-                    chart_init(chartContainerVolSelect, para, bp, sb, vol_table_err_bf, 'vol', true, true, true)
-                    chart_init(chartContainerVolSelect_af, para, bp, sb, vol_table_err_af, 'vol', false, false, true)
-                    chart_init(chartContainerNorVolSelect_bf, para, bp, sb, vol_table_nor_bf, 'vol', true)
-                    chart_init(chartContainerNorVolSelect_af, para, bp, sb, vol_table_nor_af, 'vol', false, false, true)
+                let chartContainerAf = d3.select(`#heatmap-bp${bp}-sb${sb}-af`)
+                .attr('viewBox', [0, 0, parameter.svgSizeAf.width, parameter.svgSizeAf.height])
+                chart_init(chartContainerAf, parameter, bp, sb, temp_table_err_af, 'temp', false, false, true)
             }
-            let line_tooltip_content = d3.selectAll('.tooltip').text()
-            if (line_tooltip_content.includes('cpu')) {
-                let part_of_content = line_tooltip_content.split('_')
-                let bp_point = Number(String(part_of_content[0]).substring(2))
-                let sb_point = Number(String(part_of_content[1]).substring(2))
-                if ((bp_point != bp_select) || sb_point != sb_select) {
-                    update(this, bp_point, sb_point)
-                    bp_select = bp_point;
-                    sb_point = sb_point;
-                }
-                console.log(bp_select, sb_select)
-            }
+            const bpList = [0, 1]
+            const sbList = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+            bpList.forEach((bp) => {
+                sbList.forEach((sb) => {
+                    if (!(bp==0 && sb ==6)) {
+                        chart_bpsb(bp, sb)
+                    }
+                })
+            })
+            
+            // const chartContainerNorVolSelect_af = d3.select('#heatmap-svg-vol-nor-select-af')
+                // .attr('viewBox', [0, 0, this.svgSizeAf.width, this.svgSizeAf.height])
+            // chart_init(chartContainerNorVolSelect_af, this, bp_select, sb_select, vol_table_nor_af, 'vol', false, false, true)  
+            
+            // function update(para, bp, sb) {
+            // }
+            // let line_tooltip_content = d3.selectAll('.tooltip').text()
+            // if (line_tooltip_content.includes('cpu')) {
+            //     let part_of_content = line_tooltip_content.split('_')
+            //     let bp_point = Number(String(part_of_content[0]).substring(2))
+            //     let sb_point = Number(String(part_of_content[1]).substring(2))
+            //     if ((bp_point != bp_select) || sb_point != sb_select) {
+            //         update(this, bp_point, sb_point)
+            //         bp_select = bp_point;
+            //         sb_point = sb_point;
+            //     }
+            //     console.log(bp_select, sb_select)
+            // }
                 
         }
     },
@@ -430,66 +340,111 @@ export default {
     <div ref="heatmapContainer" class="heatmapContainer" overflow-x="scroll">
         <div v-if="dataset == 'temp'" id = "root">
             <div>
+                <h2>Error node (BP0 SB6)</h2>
                 <svg id="temp-colorbar" class = "colorbar-container"></svg>
-                <select id="selectButton"></select>
-                <select id="selectButtonSb"></select>
             </div>
-            <div id="temp-heat-container">
-                <h3>Error Rack</h3>
-                <p>Error bp and Error Sb</p>
+            <div id="temp-heat-container" class="fixed-container">
                 <svg id="heatmap-svg" class = "svg-container-bf"></svg>
                 <svg id="heatmap-svg-af" class = "svg-container-af"></svg>
-                <p>Selected bp and Selected Sb</p>
-                <svg id="heatmap-svg-select" class = "svg-container-bf"></svg>
-                <svg id="heatmap-svg-select-af" class = "svg-container-af"></svg>
-                <h3>Normal Rack</h3>
-                <p>Error bp and Error Sb</p>
-                <svg id="heatmap-svg-nor" class = "svg-container-bf"></svg>
-                <svg id="heatmap-svg-nor-af" class = "svg-container-af"></svg>
-                <p>Selected bp and Selected Sb</p>
-                <svg id="heatmap-svg-nor-select" class = "svg-container-bf"></svg>
-                <svg id="heatmap-svg-nor-select-af" class = "svg-container-af"></svg>
             </div>
-            
+            <div class = "tooltip-heat">
+            </div>
         </div>
         <div v-else>
-            <svg id="vol-colorbar" class = "colorbar-container"></svg>
-            <div id="vol-heat-container">
-                <h3>Error Rack</h3>
-                <p>Error bp and Error Sb</p>
-                <svg id="heatmap-svg-vol" class = "svg-container-bf"></svg>
-                <svg id="heatmap-svg-vol-af" class = "svg-container-af"></svg>
-                <p>Selected bp and Selected Sb</p>
-                <svg id="heatmap-svg-vol-select" class = "svg-container-bf"></svg>
-                <svg id="heatmap-svg-vol-select-af" class = "svg-container-af"></svg>
-                <h3>Normal Rack</h3>
-                <p>Error bp and Error Sb</p>
-                <svg id="heatmap-svg-vol-nor" class = "svg-container-bf"></svg>
-                <svg id="heatmap-svg-vol-nor-af" class = "svg-container-af"></svg>
-                <p>Selected bp and Selected Sb</p>
-                <svg id="heatmap-svg-vol-nor-select" class = "svg-container-bf"></svg>
-                <svg id="heatmap-svg-vol-nor-select-af" class = "svg-container-af"></svg>
+            <div class="fixed-container">
+                <h2>BP0 SB0</h2>
+                <svg id="heatmap-bp0-sb0-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp0-sb0-af" class = "svg-container-af"></svg>
+                <h2>BP0 SB1</h2>
+                <svg id="heatmap-bp0-sb1-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp0-sb1-af" class = "svg-container-af"></svg>
+                <h2>BP0 SB2</h2>
+                <svg id="heatmap-bp0-sb2-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp0-sb2-af" class = "svg-container-af"></svg>
+                <h2>BP0 SB3</h2>
+                <svg id="heatmap-bp0-sb3-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp0-sb3-af" class = "svg-container-af"></svg>
+                <h2>BP0 SB4</h2>
+                <svg id="heatmap-bp0-sb4-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp0-sb4-af" class = "svg-container-af"></svg>
+                <h2>BP0 SB5</h2>
+                <svg id="heatmap-bp0-sb5-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp0-sb5-af" class = "svg-container-af"></svg>
+                <!-- <h2>BP0 SB6</h2>
+                <svg id="heatmap-bp0-sb6-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp0-sb6-af" class = "svg-container-af"></svg> -->
+                <h2>BP0 SB7</h2>
+                <svg id="heatmap-bp0-sb7-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp0-sb7-af" class = "svg-container-af"></svg>
+                <h2>BP0 SB8</h2>
+                <svg id="heatmap-bp0-sb8-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp0-sb8-af" class = "svg-container-af"></svg>
+                <h2>BP0 SB9</h2>
+                <svg id="heatmap-bp0-sb9-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp0-sb9-af" class = "svg-container-af"></svg>
+                <h2>BP0 SB10</h2>
+                <svg id="heatmap-bp0-sb10-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp0-sb10-af" class = "svg-container-af"></svg>
+                <h2>BP0 SB11</h2>
+                <svg id="heatmap-bp0-sb11-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp0-sb11-af" class = "svg-container-af"></svg>
+
+                <h2>BP1 SB0</h2>
+                <svg id="heatmap-bp1-sb0-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp1-sb0-af" class = "svg-container-af"></svg>
+                <h2>BP1 SB1</h2>
+                <svg id="heatmap-bp1-sb1-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp1-sb1-af" class = "svg-container-af"></svg>
+                <h2>BP1 SB2</h2>
+                <svg id="heatmap-bp1-sb2-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp1-sb2-af" class = "svg-container-af"></svg>
+                <h2>BP1 SB3</h2>
+                <svg id="heatmap-bp1-sb3-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp1-sb3-af" class = "svg-container-af"></svg>
+                <h2>BP1 SB4</h2>
+                <svg id="heatmap-bp1-sb4-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp1-sb4-af" class = "svg-container-af"></svg>
+                <h2>BP1 SB5</h2>
+                <svg id="heatmap-bp1-sb5-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp1-sb5-af" class = "svg-container-af"></svg>
+                <h2>BP1 SB6</h2>
+                <svg id="heatmap-bp1-sb6-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp1-sb6-af" class = "svg-container-af"></svg>
+                <h2>BP1 SB7</h2>
+                <svg id="heatmap-bp1-sb7-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp1-sb7-af" class = "svg-container-af"></svg>
+                <h2>BP1 SB8</h2>
+                <svg id="heatmap-bp1-sb8-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp1-sb8-af" class = "svg-container-af"></svg>
+                <h2>BP1 SB9</h2>
+                <svg id="heatmap-bp1-sb9-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp1-sb9-af" class = "svg-container-af"></svg>
+                <h2>BP1 SB10</h2>
+                <svg id="heatmap-bp1-sb10-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp1-sb10-af" class = "svg-container-af"></svg>
+                <h2>BP1 SB11</h2>
+                <svg id="heatmap-bp1-sb11-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp1-sb11-af" class = "svg-container-af"></svg>
             </div>
             
         </div>
         
-        <div class = "tooltip-heat">
-        </div>        
+                
     </div>
 </template>
 
 <style scoped>
 .heatmapContainer {
     /* height: 660px;  */
-    width: 1050px;
+    width: 700px;
 }
 .svg-container-bf {
     height: 105px;
-    width: 250px; 
+    width: 200px; 
 }
 .svg-container-af {
     height: 105px;
-    width: 730px; 
+    width: 500px; 
 }
 .colorbar-container {
     height: 20px;
@@ -510,5 +465,13 @@ export default {
     font-size: 12px;
     text-align: left;
     opacity: 0;
+}
+
+#cell-bf {
+    max-width: 200px;
+}
+
+#cell-af {
+    max-width: 500px;
 }
 </style>

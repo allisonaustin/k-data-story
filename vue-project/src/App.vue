@@ -62,14 +62,28 @@ export default {
     </div>
   </div>
   <!-- Part 2 -->  
-  <v-container  class="d-flex flex-column flex-nowrap">
-    <v-row>
-      <h2>Temperature</h2>
-      <HeatmapView :dataset="tempDataset" />
-      <h2>Voltage</h2>
-      <HeatmapView :dataset="volDataset" />
-    </v-row>
-  </v-container>
+  <div class="full-width container">
+    <h2>Temperature Heatmap</h2>
+    <div class="caption">
+      <p>Compare the temperature between the error occuring node (BP0 SB1) and other nodes. </p>
+    </div>
+    <div id="sec-container" class="fixed-container">
+          
+      <div class="fixed-left-heat">
+        <div id="heatmap-err">
+          
+          <HeatmapView :dataset="tempDataset" />
+        </div>
+      </div>
+      <div class="scrollable-right">
+        <div class="inner">
+          <HeatmapView :dataset="volDataset" />
+        </div>
+      </div>
+    </div>
+  </div>
+      
+      
 </template>
 
 <style scoped>
@@ -83,12 +97,26 @@ export default {
   top: 0;
   padding-top: 20px;
 }
-
+#heatmap-err {
+  position: sticky;
+  top: 0;
+  padding-top: 20px;
+}
 .fixed-left {
   flex: 0 0 auto;
   padding: 20px; 
   width: auto;
   max-width: 500px;
+  text-align: left;
+  position: sticky;
+  top: 0;
+}
+
+.fixed-left-heat {
+  flex: 0 0 auto;
+  padding: 20px; 
+  width: auto;
+  max-width: 750px;
   text-align: left;
   position: sticky;
   top: 0;

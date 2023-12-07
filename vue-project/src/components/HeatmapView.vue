@@ -12,8 +12,8 @@ const rack_err = 'l07'
 const rack_nor = 'm05'
 const bp_err = 0
 const sb_err = 6
-const bp_select = 0
-const sb_select = 0
+let bp_select = 0
+let sb_select = 0
 const errTime = new Date("2019-05-28 14:52:00")
 function data_group(inputTable, node: string, type: string) {
     let return_table_bf = []
@@ -88,19 +88,19 @@ export default {
             // let timeExtent = d3.extent(temp_table_err_bf.map(d => d.check_time))
             let cpuList = ["CPU 0", "CPU 1", "CPU 2", "CPU 3"]
             let ibcList = ["IBC 0", "IBC 1", "IBC 2", "IBC 3"]
-            let temp_extent = [14, 22]
-            const colorBandTemp = d3.scaleSequential(["white", "red"]).domain(temp_extent)
+            let temp_extent = [0, 12, 22]
+            const colorBandTemp = d3.scaleLinear().domain([0, 12, 22]).range(["#8fe5f7", "white", "red"]);
             let vol_extent = [12, 12.5]
             const colorBandVol= d3.scaleSequential(["white", "blue"]).domain(vol_extent)
             
             // tooltip event
             let tooltip = d3.select(".tooltip-heat")
-            function mouseover(event, item, info) {
+            function mouseover(event, item, info, bp, sb) {
                 tooltip.transition()
                     .duration(100)
                     .style("opacity", 1);
                 
-                tooltip.html(`${item} bp${bp_err} sb${sb_err} ${info}`)
+                tooltip.html(`${item} bp${bp} sb${sb} ${info}`)
                     .style("left", `${event.x}px`)
                     .style("top", `${event.y+1200}px`)
             }
@@ -178,7 +178,7 @@ export default {
                         .enter()
                         .append('rect')
                             .attr("class", d => {
-                                return `t_${d.time_idx}_${index}_${bp}_${sb}`
+                                return `t_${d.time_idx}_${index}`
                             })
                             .attr('x', d =>  xScale(new Date(d.check_time.getTime()) - timeBand / 2))
                             .attr('y', () => {
@@ -189,7 +189,7 @@ export default {
                                     return yScale(index)
                                 }
                             })
-                            .attr('width', 0.98 * xScale(table_data[1].check_time) - xScale(table_data[0].check_time))
+                            .attr('width', 0.95 * xScale(table_data[1].check_time) - xScale(table_data[0].check_time))
                             .attr('height', yScale.bandwidth())
                             .attr('fill', d => {
                                 if (dataset == 'temp') {
@@ -206,10 +206,12 @@ export default {
                                 .duration(100)
                                 .attr('opacity', 0.85);
                             if (dataset == 'temp') {
-                                mouseover(event, `CPU ${index}`, `${d[`bp${bp}_sb${sb}_cpu_${index}_temp`]} °C`)
+                                mouseover(event, `CPU ${index}`, `${d[`bp${bp}_sb${sb}_cpu_${index}_temp`]} °C`,
+                                bp, sb)
                             }
                             else {
-                                mouseover(event, `IBC ${index}`, `${d[`bp${bp}_sb${sb}_ibc_${index}_vol`]} V`)
+                                mouseover(event, `IBC ${index}`, `${d[`bp${bp}_sb${sb}_ibc_${index}_vol`]} V`,
+                                bp, sb)
                             }
                             
                         })
@@ -223,14 +225,17 @@ export default {
                 }   
                 
             }
+            
             // temp
             const colorbar = d3.select("#temp-colorbar")
             let defs = colorbar.append("defs")
             let linearGradient = defs.append("linearGradient")
                 .attr("id", "linear-gradient");
-            //Set the color for the start (0%)
+
             linearGradient.selectAll("stop")
-                .data(colorBandTemp.ticks().map((t, i, n) => ({ offset: `${100*i/n.length}%`, color: colorBandTemp(t) })))    
+                .data(colorBandTemp.ticks(10).map((t, i, n) => {
+                    return ({ offset: `${100*i/n.length}%`, color: colorBandTemp(t) })
+                }))    
                 .enter()
                 .append("stop")
                 .attr("offset", d => d.offset)
@@ -244,24 +249,52 @@ export default {
                 .style("fill", "url(#linear-gradient)");
 
             const colorAxisScale = d3.scaleLinear()
-                .domain(colorBandTemp.domain())
+                .domain([colorBandTemp.domain()[0], colorBandTemp.domain()[2]])
                 .range([this.margin.left, this.colorbarSize.width - this.margin.right])
             
             const colorAxisTicks = d3.axisBottom(colorAxisScale)
-                .ticks(4) 
+                .ticks(5) 
                 .tickSize(-this.colorbarSize.height)
             const colorAxis = colorbar.append("g")
             .attr('transform', `translate(${0}, ${this.colorbarSize.height})`)
             .call(colorAxisTicks)
-            const dropDown = d3.select("#dropdown_container").append("select")
-                    .attr("name", "country-list");
+            let allBp = [0, 1]
+            let allSb = [...Array(12).keys()];
+            let dropDown = d3.select("#selectButton").selectAll('myOptions')
+     	        .data(allBp)
+                .enter()
+    	        .append('option')
+                .text((d) => { 
+                    return `BP${d}`; 
+                }) // text showed in the menu
+                .attr("value", function (d) { return d; }) // corresponding value returned by the button
+            let dropDownSb = d3.select("#selectButtonSb").selectAll('Options')
+     	        .data(allSb)
+                .enter()
+    	        .append('option')
+                .text((d) => { 
+                    return `SB${d}`; 
+                }) // text showed in the menu
+                .attr("value", function (d) { return d; })
+            console.log(d3.select("#selectButton").node())
+            let parameter = this;
+            d3.select("#selectButton").on("change", function(d) {
+                let selectedOption = d3.select(this).property("value")
+                bp_select = d3.select(this).property("value")
+                update(parameter, bp_select, sb_select)
+            })
+            d3.select("#selectButtonSb").on("change", function(d) {
+                let selectedOption = d3.select(this).property("value")
+                sb_select = d3.select(this).property("value")
+                update(parameter, bp_select, sb_select)
+            })
             const chartContainer = d3.select('#heatmap-svg')
                 .attr('viewBox', [0, 0, this.svgSizeBf.width, this.svgSizeBf.height])                
-            chart_init(chartContainer, this, bp_err, sb_err, temp_table_err_bf, 'temp', true, true, false)
+            chart_init(chartContainer, this, bp_err, sb_err, temp_table_err_bf, 'temp', true, true, true)
 
             const chartContainer_af = d3.select('#heatmap-svg-af')
                 .attr('viewBox', [0, 0, this.svgSizeAf.width, this.svgSizeAf.height])
-            chart_init(chartContainer_af, this, bp_err, sb_err, temp_table_err_af, 'temp', false, false, false)
+            chart_init(chartContainer_af, this, bp_err, sb_err, temp_table_err_af, 'temp', false, false, true)
             const chartContainerSelect = d3.select('#heatmap-svg-select')
                 .attr('viewBox', [0, 0, this.svgSizeBf.width, this.svgSizeBf.height])                
             chart_init(chartContainerSelect, this, bp_select, sb_select, temp_table_err_bf, 'temp', true, true, true)
@@ -321,11 +354,11 @@ export default {
            
             const chartContainerVol = d3.select('#heatmap-svg-vol')
                 .attr('viewBox', [0, 0, this.svgSizeBf.width, this.svgSizeBf.height])                
-            chart_init(chartContainerVol, this, bp_err, sb_err, vol_table_err_bf, 'vol', true, true, false)
+            chart_init(chartContainerVol, this, bp_err, sb_err, vol_table_err_bf, 'vol', true, true, true)
 
             const chartContainerVol_af = d3.select('#heatmap-svg-vol-af')
                 .attr('viewBox', [0, 0, this.svgSizeAf.width, this.svgSizeAf.height])
-            chart_init(chartContainerVol_af, this, bp_err, sb_err, vol_table_err_af, 'vol', false, false, false)
+            chart_init(chartContainerVol_af, this, bp_err, sb_err, vol_table_err_af, 'vol', false, false, true)
 
             const chartContainerNorVol_bf = d3.select('#heatmap-svg-vol-nor')
                 .attr('viewBox', [0, 0, this.svgSizeBf.width, this.svgSizeBf.height])
@@ -333,16 +366,53 @@ export default {
             const chartContainerNorVol_af = d3.select('#heatmap-svg-vol-nor-af')
                 .attr('viewBox', [0, 0, this.svgSizeAf.width, this.svgSizeAf.height])
             chart_init(chartContainerNorVol_af, this, bp_err, sb_err, vol_table_nor_af, 'vol', false, false, true)
+
+            const chartContainerVolSelect = d3.select('#heatmap-svg-vol-select')
+                .attr('viewBox', [0, 0, this.svgSizeBf.width, this.svgSizeBf.height])                
+            chart_init(chartContainerVolSelect, this, bp_select, sb_select, vol_table_err_bf, 'vol', true, true, true)
+
+            const chartContainerVolSelect_af = d3.select('#heatmap-svg-vol-select-af')
+                .attr('viewBox', [0, 0, this.svgSizeAf.width, this.svgSizeAf.height])
+            chart_init(chartContainerVolSelect_af, this, bp_select, sb_select, vol_table_err_af, 'vol', false, false, true)
+
+            const chartContainerNorVolSelect_bf = d3.select('#heatmap-svg-vol-nor-select')
+                .attr('viewBox', [0, 0, this.svgSizeBf.width, this.svgSizeBf.height])
+            chart_init(chartContainerNorVolSelect_bf, this, bp_select, sb_select, vol_table_nor_bf, 'vol', true)
+            const chartContainerNorVolSelect_af = d3.select('#heatmap-svg-vol-nor-select-af')
+                .attr('viewBox', [0, 0, this.svgSizeAf.width, this.svgSizeAf.height])
+            chart_init(chartContainerNorVolSelect_af, this, bp_select, sb_select, vol_table_nor_af, 'vol', false, false, true)  
             
-    
+            function update(para, bp, sb) {
+                chart_init(chartContainerSelect, para, bp, sb, temp_table_err_bf, 'temp', true, true, true)
+                    chart_init(chartContainerSelect_af, para, bp, sb, temp_table_err_af, 'temp', false, false, true)
+                    chart_init(chartContainerNorSelect_bf, para, bp, sb, temp_table_nor_bf, 'temp', true)
+                    chart_init(chartContainerNorSelect_af, para, bp, sb, temp_table_nor_af, 'temp', false, false, true)
+                    
+                    chart_init(chartContainerVolSelect, para, bp, sb, vol_table_err_bf, 'vol', true, true, true)
+                    chart_init(chartContainerVolSelect_af, para, bp, sb, vol_table_err_af, 'vol', false, false, true)
+                    chart_init(chartContainerNorVolSelect_bf, para, bp, sb, vol_table_nor_bf, 'vol', true)
+                    chart_init(chartContainerNorVolSelect_af, para, bp, sb, vol_table_nor_af, 'vol', false, false, true)
+            }
+            let line_tooltip_content = d3.selectAll('.tooltip').text()
+            if (line_tooltip_content.includes('cpu')) {
+                let part_of_content = line_tooltip_content.split('_')
+                let bp_point = Number(String(part_of_content[0]).substring(2))
+                let sb_point = Number(String(part_of_content[1]).substring(2))
+                if ((bp_point != bp_select) || sb_point != sb_select) {
+                    update(this, bp_point, sb_point)
+                    bp_select = bp_point;
+                    sb_point = sb_point;
+                }
+                console.log(bp_select, sb_select)
+            }
                 
         }
     },
     watch: {
         size(newSize) {
             if (newSize.width > 0 && newSize.height > 0) {
-                d3.select('#heatmap-svg').selectAll('*').remove()
-                // d3.select('#heatmap-svg-nor').selectAll('*').remove()
+                d3.select('.svg-container-bf').selectAll('*').remove()
+                d3.select('.svg-container-bf').selectAll('*').remove()
                 this.initChart()
             }
         }
@@ -361,7 +431,8 @@ export default {
         <div v-if="dataset == 'temp'" id = "root">
             <div>
                 <svg id="temp-colorbar" class = "colorbar-container"></svg>
-                <svg id="dropdown_container"></svg>
+                <select id="selectButton"></select>
+                <select id="selectButtonSb"></select>
             </div>
             <div id="temp-heat-container">
                 <h3>Error Rack</h3>
@@ -384,10 +455,20 @@ export default {
         <div v-else>
             <svg id="vol-colorbar" class = "colorbar-container"></svg>
             <div id="vol-heat-container">
+                <h3>Error Rack</h3>
+                <p>Error bp and Error Sb</p>
                 <svg id="heatmap-svg-vol" class = "svg-container-bf"></svg>
                 <svg id="heatmap-svg-vol-af" class = "svg-container-af"></svg>
+                <p>Selected bp and Selected Sb</p>
+                <svg id="heatmap-svg-vol-select" class = "svg-container-bf"></svg>
+                <svg id="heatmap-svg-vol-select-af" class = "svg-container-af"></svg>
+                <h3>Normal Rack</h3>
+                <p>Error bp and Error Sb</p>
                 <svg id="heatmap-svg-vol-nor" class = "svg-container-bf"></svg>
                 <svg id="heatmap-svg-vol-nor-af" class = "svg-container-af"></svg>
+                <p>Selected bp and Selected Sb</p>
+                <svg id="heatmap-svg-vol-nor-select" class = "svg-container-bf"></svg>
+                <svg id="heatmap-svg-vol-nor-select-af" class = "svg-container-af"></svg>
             </div>
             
         </div>
@@ -399,7 +480,7 @@ export default {
 
 <style scoped>
 .heatmapContainer {
-    height: 660px;
+    /* height: 660px;  */
     width: 1050px;
 }
 .svg-container-bf {

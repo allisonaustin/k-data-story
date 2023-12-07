@@ -80,7 +80,7 @@ export default {
         onResize() {
             let target = this.$refs.heatmapContainer as HTMLElement
             if (target === undefined) return;
-            this.size = { width: target.clientWidth, height: target.clientHeight};
+            this.size = { width: target.clientWidth || 0, height: target.clientHeight || 0};
         },
         initChart() {
             const timeFormat = d3.timeFormat('%H:%M');

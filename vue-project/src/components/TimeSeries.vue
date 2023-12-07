@@ -3,7 +3,6 @@ import * as d3 from "d3";
 import { isEmpty, debounce, range } from 'lodash';
 import { ComponentSize, Margin, ContainerRect } from '../types';
 import { errorPeriod, errorNode, normalNode } from '../colors';
-import { NONAME } from "dns";
 
 const temp_data_err = await d3.csv('../../data/temp-data-l07.csv');
 const temp_data_norm = await d3.csv('../../data/temp-data-m05.csv');

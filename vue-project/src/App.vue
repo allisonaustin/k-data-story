@@ -2,13 +2,15 @@
 import SpatialView from './components/SpatialView.vue'
 import TimeSeries from './components/TimeSeries.vue'
 import HeatmapView from './components/HeatmapView.vue'
+import RadarChart from './components/RadarChart.vue'
 // import HeatmapView_vol from './components/HeatmapView_vol.vue'
 
 export default {
   components: {
     SpatialView,
     TimeSeries,
-    HeatmapView
+    HeatmapView,
+    RadarChart
   }, 
   data() {
     return {
@@ -61,7 +63,7 @@ export default {
       </div>
     </div>
   </div>
-  <!-- Part 2 -->  
+  <!-- Part 2 -->
   <div class="full-width container">
     <h2>Temperature Heatmap</h2>
     <div class="caption">
@@ -82,7 +84,11 @@ export default {
       </div>
     </div>
   </div>
-      
+  <!-- Part 3 -->
+    <div class="full-width container">
+      <h2 style="text-align:center">System View</h2>
+      <RadarChart />
+    </div>      
       
 </template>
 

@@ -106,8 +106,12 @@ export default {
     },
     data() {
         return {
+            chartId: 1,
+            datum: [] as any[],
+            datum_n: [] as any[],
             data: [],
             data_n: [],
+            y_scale_datum: [] as any[],
             size: { width: 600, height: 600 } as ComponentSize,
             chartSize: { width: 500, height: 400 } as ComponentSize,
             margin: {left: 50, right: 0, top: 20, bottom: 40} as Margin,
@@ -124,17 +128,18 @@ export default {
     },
     created() {
         if (isEmpty(this.dataset)) return;
-        let datum = []
-        let datum_norm = []
         if (this.dataset == 'temp') {
-            datum = loadTempDataErr()
-            datum_norm = loadTempDataNorm()
+            this.chartId = 1
+            this.datum = loadTempDataErr()
+            this.datum_n = loadTempDataNorm()
         } else {
-            datum = loadVoltageDataErr()
-            datum_norm = loadVoltageDataNorm()
+            this.chartId = 2
+            this.datum = loadVoltageDataErr()
+            this.datum_n = loadVoltageDataNorm()
         }
-        this.data = groupBy(datum, 'node')
-        this.data_n = groupBy(datum_norm, 'node')
+        this.data = groupBy(this.datum, 'node')
+        this.data_n = groupBy(this.datum_n, 'node')
+        this.y_scale_datum = this.datum
         this.initChart();
     },
     methods: {
@@ -144,8 +149,20 @@ export default {
             this.size = { width: target.clientWidth || 0, height: target.clientHeight || 0};
         },
         updateChart() {
-            const errLines = d3.select('#err-lines-group')
-            const normLines = d3.select('#lines-group')
+            // updating y scale if error readings are hidden
+            // if (!this.showErrReadings) {
+            //     this.y_scale_datum = this.datum_n;
+            // } else {
+            //     this.y_scale_datum = this.datum;
+            // }
+
+            // if (this.dataset == 'temp') d3.select('#temp-time-series-svg').selectAll('*').remove()
+            // else d3.select('#vol-time-series-svg').selectAll('*').remove()
+            
+            // this.initChart()
+
+            const errLines = d3.select('#err-lines-group' + this.chartId)
+            const normLines = d3.select('#lines-group' + this.chartId)
 
             if (this.showErrReadings) {
                 errLines.style('display', 'block')
@@ -178,21 +195,15 @@ export default {
             const volChartTitle = "Voltage Readings"
             const volYLabel = ""
 
-            let datum = [];
-            if (this.dataset == 'temp') {
-                datum = loadTempDataErr();
-            } else {
-                datum = loadVoltageDataErr();
-            }
-
             const timeParse = d3.timeParse('%Y-%m-%d %H:%M:%S')
             const timeFormat = d3.timeFormat('%H:%M');
+
             const x = d3.scaleTime()
-                .domain(d3.extent(datum, function(d) { return d.check_time }))
+                .domain(d3.extent(this.datum, function(d) { return d.check_time }))
                 .range([0, 370])
 
             const y = d3.scaleLinear()
-                .domain([0, d3.max(datum, function(d) { return +d.value })])
+                .domain([d3.min(this.y_scale_datum, function(d) { return +d.value }), d3.max(this.y_scale_datum, function(d) { return +d.value })])
                 .range([ 250, 0 ])
             
             const chartXAxis = d3.axisBottom(x)
@@ -206,6 +217,7 @@ export default {
                 .attr('transform', 'rotate(-45)') 
                 .style('text-anchor', 'end'); 
             chartContainer.append('g')
+                .attr('class', 'y-axis')
                 .attr('transform', `translate(${this.margin.left}, ${this.margin.bottom + this.margin.top + yPadding})`)
                 .call(d3.axisLeft(y))
 
@@ -239,8 +251,8 @@ export default {
                 .attr('fill', errorPeriod)
                 .attr('opacity', 0.3)
 
-            const linesGroup = chartContainer.append('g').attr('id', 'lines-group');
-            const errLinesGroup = chartContainer.append('g').attr('id', 'err-lines-group');
+            const linesGroup = chartContainer.append('g').attr('id', 'lines-group' + this.chartId);
+            const errLinesGroup = chartContainer.append('g').attr('id', 'err-lines-group' + this.chartId);
 
             // normal readings
             const norm_lines = Object.keys(data_n).forEach(node => {
@@ -367,7 +379,6 @@ export default {
                     // tooltip to display node
                     path.on('mouseover', function (event, d) {
                         const [xPos, yPos] = d3.pointer(event);
-
                         d3.select(this).style("cursor", "pointer");
 
                         errDataPoints
@@ -518,17 +529,25 @@ export default {
     <div ref="chartContainer" class="container">
         <div v-if="dataset=='temp'">
             <svg id="temp-time-series-svg" ref="timeSeriesTemp"></svg>
+            <div class="checkbox-container">
+            <label>
+                <input type="checkbox" checked v-model="showErrReadings" @change="updateChart" /> {{ errRack }}
+            </label>
+            <label>
+                <input type="checkbox" checked v-model="showNormReadings" @change="updateChart" /> {{ normRack }}
+            </label>
+        </div>
         </div>
         <div v-else>
             <svg id="vol-time-series-svg" ref="volSeriesTemp"></svg>
+            <div class="checkbox-container">
+            <label>
+                <input type="checkbox" checked v-model="showErrReadings" @change="updateChart" /> {{ errRack }}
+            </label>
+            <label>
+                <input type="checkbox" checked v-model="showNormReadings" @change="updateChart" /> {{ normRack }}
+            </label>
         </div>
-        <div class="checkbox-container">
-            <label>
-            <input type="checkbox" checked v-model="showErrReadings" @change="updateChart" /> {{ errRack }}
-            </label>
-            <label>
-            <input type="checkbox" checked v-model="showNormReadings" @change="updateChart" /> {{ normRack }}
-            </label>
         </div>
         <div class="tooltip"></div>
     </div>

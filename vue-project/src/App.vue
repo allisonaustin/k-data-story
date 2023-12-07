@@ -66,27 +66,16 @@ export default {
   <!-- Part 2 -->
   <div class="full-width container">
     <h2>Temperature Heatmap</h2>
-    <div class="caption">
-      <p>Compare the temperature between the error occuring node (BP0 SB1) and other nodes. For each node, the left part shows the data before the error occured, and the right one shows the data after the error occured.</p>
+    <div class="intro">
+      <p>The following visualizations compare the temperature values between each node in error rack L07. For each node, the left map shows the data before the error occured, and the right map shows the data after the error occured.</p>
     </div>
-    <div id="sec-container" class="fixed-container">
-          
-      <div class="fixed-left-heat">
-        <div id="heatmap-err">
-          
+    <div id="sec-container" class="full-width container">
           <HeatmapView :dataset="tempDataset" />
-        </div>
-      </div>
-      <div class="scrollable-right">
-        <div class="inner">
-          <HeatmapView :dataset="volDataset" />
-        </div>
-      </div>
     </div>
   </div>
   <!-- Part 3 -->
     <div class="full-width container">
-      <h2 style="text-align:center">System View</h2>
+      <h2 style="text-align:center; margin-top: 20px;">System View</h2>
       <RadarChart />
     </div>      
       
@@ -99,11 +88,6 @@ export default {
 }
 
 #rack-space {
-  position: sticky;
-  top: 0;
-  padding-top: 20px;
-}
-#heatmap-err {
   position: sticky;
   top: 0;
   padding-top: 20px;
@@ -132,5 +116,9 @@ export default {
   flex: 1;
   padding-left: 40px;
   padding-top: 40px;
+}
+
+#sec-container {
+  background-color: #e9e4e499;
 }
 </style>

@@ -101,8 +101,8 @@ export default {
                     .style("opacity", 1);
                 
                 tooltip.html(`${item} bp${bp} sb${sb} ${info}`)
-                    .style("left", `${event.x}px`)
-                    .style("top", `${event.y+2000}px`)
+                    .style("left", `${100}px`)
+                    .style("top", `${300}px`)
             }
             function mouseout(event, d) {
                 tooltip.transition()
@@ -299,7 +299,6 @@ export default {
             
             // const chartContainerNorVolSelect_af = d3.select('#heatmap-svg-vol-nor-select-af')
                 // .attr('viewBox', [0, 0, this.svgSizeAf.width, this.svgSizeAf.height])
-            // chart_init(chartContainerNorVolSelect_af, this, bp_select, sb_select, vol_table_nor_af, 'vol', false, false, true)  
             
             // function update(para, bp, sb) {
             // }
@@ -339,90 +338,98 @@ export default {
 <template>
     <div ref="heatmapContainer" class="heatmapContainer" overflow-x="scroll">
         <div v-if="dataset == 'temp'" id = "root">
-            <div>
-                <h2>Error node (BP0 SB6)</h2>
+            <div >
                 <svg id="temp-colorbar" class = "colorbar-container"></svg>
+                
+                
             </div>
-            <div id="temp-heat-container" class="fixed-container">
-                <svg id="heatmap-svg" class = "svg-container-bf"></svg>
-                <svg id="heatmap-svg-af" class = "svg-container-af"></svg>
+            <div id="temp-heat-error-container" class="fixed-container">
+                <h3 id = 'error-h3'>Error node BP0 SB6</h3>
+                <div>
+                    <svg id="heatmap-svg" class = "svg-container-bf"></svg>
+                    <svg id="heatmap-svg-af" class = "svg-container-af"></svg>
+                </div>
+                <div class = "tooltip-heat"></div>
             </div>
-            <div class = "tooltip-heat">
+                
+            <div>
+                <h3 class='h3-inline'>BP0 SB0</h3>
+                <svg id="heatmap-bp0-sb0-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp0-sb0-af" class = "svg-container-af"></svg>
+                <h3 class='h3-inline'>BP0 SB1</h3>
+                <svg id="heatmap-bp0-sb1-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp0-sb1-af" class = "svg-container-af"></svg>
+                <h3 class='h3-inline'>BP0 SB2</h3>
+                <svg id="heatmap-bp0-sb2-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp0-sb2-af" class = "svg-container-af"></svg>
+                <h3 class='h3-inline'>BP0 SB3</h3>
+                <svg id="heatmap-bp0-sb3-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp0-sb3-af" class = "svg-container-af"></svg>
+                <h3 class='h3-inline'>BP0 SB4</h3>
+                <svg id="heatmap-bp0-sb4-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp0-sb4-af" class = "svg-container-af"></svg>
+                <h3 class='h3-inline'>BP0 SB5</h3>
+                <svg id="heatmap-bp0-sb5-bf" class = "svg-container-bf"></svg>
+                <svg id="heatmap-bp0-sb5-af" class = "svg-container-af"></svg>
             </div>
+            
         </div>
         <div v-else>
             <div class="fixed-container">
-                <h2>BP0 SB0</h2>
-                <svg id="heatmap-bp0-sb0-bf" class = "svg-container-bf"></svg>
-                <svg id="heatmap-bp0-sb0-af" class = "svg-container-af"></svg>
-                <h2>BP0 SB1</h2>
-                <svg id="heatmap-bp0-sb1-bf" class = "svg-container-bf"></svg>
-                <svg id="heatmap-bp0-sb1-af" class = "svg-container-af"></svg>
-                <h2>BP0 SB2</h2>
-                <svg id="heatmap-bp0-sb2-bf" class = "svg-container-bf"></svg>
-                <svg id="heatmap-bp0-sb2-af" class = "svg-container-af"></svg>
-                <h2>BP0 SB3</h2>
-                <svg id="heatmap-bp0-sb3-bf" class = "svg-container-bf"></svg>
-                <svg id="heatmap-bp0-sb3-af" class = "svg-container-af"></svg>
-                <h2>BP0 SB4</h2>
-                <svg id="heatmap-bp0-sb4-bf" class = "svg-container-bf"></svg>
-                <svg id="heatmap-bp0-sb4-af" class = "svg-container-af"></svg>
-                <h2>BP0 SB5</h2>
-                <svg id="heatmap-bp0-sb5-bf" class = "svg-container-bf"></svg>
-                <svg id="heatmap-bp0-sb5-af" class = "svg-container-af"></svg>
-                <!-- <h2>BP0 SB6</h2>
+                
+                <!-- <h3 class='h3-inline'>BP0 SB6</h3>
                 <svg id="heatmap-bp0-sb6-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp0-sb6-af" class = "svg-container-af"></svg> -->
-                <h2>BP0 SB7</h2>
+                <h3 class='h3-inline'>BP0 SB7</h3>
                 <svg id="heatmap-bp0-sb7-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp0-sb7-af" class = "svg-container-af"></svg>
-                <h2>BP0 SB8</h2>
+                <h3 class='h3-inline'>BP0 SB8</h3>
                 <svg id="heatmap-bp0-sb8-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp0-sb8-af" class = "svg-container-af"></svg>
-                <h2>BP0 SB9</h2>
+                <h3 class='h3-inline'>BP0 SB9</h3>
                 <svg id="heatmap-bp0-sb9-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp0-sb9-af" class = "svg-container-af"></svg>
-                <h2>BP0 SB10</h2>
+                <h3 class='h3-inline'>BP0 SB10</h3>
                 <svg id="heatmap-bp0-sb10-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp0-sb10-af" class = "svg-container-af"></svg>
-                <h2>BP0 SB11</h2>
+                <h3 class='h3-inline'>BP0 SB11</h3>
                 <svg id="heatmap-bp0-sb11-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp0-sb11-af" class = "svg-container-af"></svg>
 
-                <h2>BP1 SB0</h2>
+                <h3 class='h3-inline'>BP1 SB0</h3>
                 <svg id="heatmap-bp1-sb0-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp1-sb0-af" class = "svg-container-af"></svg>
-                <h2>BP1 SB1</h2>
+                <h3 class='h3-inline'>BP1 SB1</h3>
                 <svg id="heatmap-bp1-sb1-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp1-sb1-af" class = "svg-container-af"></svg>
-                <h2>BP1 SB2</h2>
+                <h3 class='h3-inline'>BP1 SB2</h3>
                 <svg id="heatmap-bp1-sb2-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp1-sb2-af" class = "svg-container-af"></svg>
-                <h2>BP1 SB3</h2>
+                <h3 class='h3-inline'>BP1 SB3</h3>
                 <svg id="heatmap-bp1-sb3-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp1-sb3-af" class = "svg-container-af"></svg>
-                <h2>BP1 SB4</h2>
+                <h3 class='h3-inline'>BP1 SB4</h3>
                 <svg id="heatmap-bp1-sb4-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp1-sb4-af" class = "svg-container-af"></svg>
-                <h2>BP1 SB5</h2>
+                <h3 class='h3-inline'>BP1 SB5</h3>
                 <svg id="heatmap-bp1-sb5-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp1-sb5-af" class = "svg-container-af"></svg>
-                <h2>BP1 SB6</h2>
+                <h3 class='h3-inline'>BP1 SB6</h3>
                 <svg id="heatmap-bp1-sb6-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp1-sb6-af" class = "svg-container-af"></svg>
-                <h2>BP1 SB7</h2>
+                <h3 class='h3-inline'>BP1 SB7</h3>
                 <svg id="heatmap-bp1-sb7-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp1-sb7-af" class = "svg-container-af"></svg>
-                <h2>BP1 SB8</h2>
+                <h3 class='h3-inline'>BP1 SB8</h3>
                 <svg id="heatmap-bp1-sb8-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp1-sb8-af" class = "svg-container-af"></svg>
-                <h2>BP1 SB9</h2>
+                <h3 class='h3-inline'>BP1 SB9</h3>
                 <svg id="heatmap-bp1-sb9-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp1-sb9-af" class = "svg-container-af"></svg>
-                <h2>BP1 SB10</h2>
+                <h3 class='h3-inline'>BP1 SB10</h3>
                 <svg id="heatmap-bp1-sb10-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp1-sb10-af" class = "svg-container-af"></svg>
-                <h2>BP1 SB11</h2>
+                <h3 class='h3-inline'>BP1 SB11</h3>
                 <svg id="heatmap-bp1-sb11-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp1-sb11-af" class = "svg-container-af"></svg>
             </div>
@@ -435,24 +442,25 @@ export default {
 
 <style scoped>
 .heatmapContainer {
-    /* height: 660px;  */
-    width: 700px;
+    width: 730px;
 }
 .svg-container-bf {
     height: 105px;
-    width: 200px; 
+    width: 180px; 
 }
 .svg-container-af {
     height: 105px;
-    width: 500px; 
+    width: 420px; 
 }
 .colorbar-container {
     height: 20px;
     width: 250px; 
 }
-#dropdown_container {
-  width: 50px;
-  height: 2px;
+#temp-heat-error-container {
+    margin-top: 10px;
+    /* margin-left: 10px; */
+    width: 650;
+    background-color: blanchedalmond;
 }
 .tooltip-heat{
     position: absolute;
@@ -473,5 +481,12 @@ export default {
 
 #cell-af {
     max-width: 500px;
+}
+#error-bar {
+    display: block;
+}
+.h3-inline {
+    float:left;
+    display: flex;
 }
 </style>

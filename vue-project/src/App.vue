@@ -116,7 +116,7 @@ export default {
   flex: 0 0 auto;
   padding: 20px; 
   width: auto;
-  max-width: 750px;
+  max-width: 800px;
   text-align: left;
   position: sticky;
   top: 0;

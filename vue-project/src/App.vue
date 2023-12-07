@@ -65,7 +65,7 @@ export default {
   <div class="full-width container">
     <h2>Temperature Heatmap</h2>
     <div class="caption">
-      <p>Compare the temperature between the error occuring node (BP0 SB1) and other nodes. </p>
+      <p>Compare the temperature between the error occuring node (BP0 SB1) and other nodes. For each node, the left part shows the data before the error occured, and the right one shows the data after the error occured.</p>
     </div>
     <div id="sec-container" class="fixed-container">
           
@@ -116,7 +116,7 @@ export default {
   flex: 0 0 auto;
   padding: 20px; 
   width: auto;
-  max-width: 800px;
+  max-width: 700px;
   text-align: left;
   position: sticky;
   top: 0;

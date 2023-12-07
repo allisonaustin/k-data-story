@@ -41,15 +41,15 @@ function data_group(inputTable, node: string, type: string) {
 let temp_table_err = data_group(temp_data_err, rack_err, 'temp')
 let temp_table_err_bf = temp_table_err[0]
 let temp_table_err_af = temp_table_err[1]
-let temp_table_nor = data_group(temp_data_nor, rack_nor, 'temp')
-let temp_table_nor_bf = temp_table_nor[0]
-let temp_table_nor_af = temp_table_nor[1]
-let vol_table_err = data_group(vol_data_err, rack_err, 'vol')
-let vol_table_err_bf = vol_table_err[0]
-let vol_table_err_af = vol_table_err[1]
-let vol_table_nor = data_group(vol_data_nor, rack_nor, 'vol')
-let vol_table_nor_bf = vol_table_nor[0]
-let vol_table_nor_af = vol_table_nor[1]
+// let temp_table_nor = data_group(temp_data_nor, rack_nor, 'temp')
+// let temp_table_nor_bf = temp_table_nor[0]
+// let temp_table_nor_af = temp_table_nor[1]
+// let vol_table_err = data_group(vol_data_err, rack_err, 'vol')
+// let vol_table_err_bf = vol_table_err[0]
+// let vol_table_err_af = vol_table_err[1]
+// let vol_table_nor = data_group(vol_data_nor, rack_nor, 'vol')
+// let vol_table_nor_bf = vol_table_nor[0]
+// let vol_table_nor_af = vol_table_nor[1]
 
 export default {
     props: {
@@ -85,13 +85,12 @@ export default {
         initChart() {
             const timeFormat = d3.timeFormat('%H:%M');
             let timeBand = temp_table_err_bf[1].check_time - temp_table_err_bf[0].check_time
-            // let timeExtent = d3.extent(temp_table_err_bf.map(d => d.check_time))
             let cpuList = ["CPU 0", "CPU 1", "CPU 2", "CPU 3"]
             let ibcList = ["IBC 0", "IBC 1", "IBC 2", "IBC 3"]
-            let temp_extent = [0, 12, 22]
-            const colorBandTemp = d3.scaleLinear().domain([0, 12, 22]).range(["#8fe5f7", "white", "red"]);
+            let temp_extent = [0, 16, 22]
+            const colorBandTemp = d3.scaleLinear().domain(temp_extent).range(["#8fe5f7", "white", "red"]);
             let vol_extent = [12, 12.5]
-            const colorBandVol= d3.scaleSequential(["white", "blue"]).domain(vol_extent)
+            // const colorBandTemp= d3.scaleSequential(["white", "blue"]).domain(vol_extent)
             
             // tooltip event
             let tooltip = d3.select(".tooltip-heat")
@@ -101,8 +100,8 @@ export default {
                     .style("opacity", 1);
                 
                 tooltip.html(`${item} bp${bp} sb${sb} ${info}`)
-                    .style("left", `${100}px`)
-                    .style("top", `${300}px`)
+                    .style("left", `${300}px`)
+                    .style("top", `${20}px`)
             }
             function mouseout(event, d) {
                 tooltip.transition()
@@ -203,8 +202,8 @@ export default {
                         .on('mouseover', function (event, d) {
                             d3.selectAll('.' + this.getAttribute('class'))
                                 .transition()
-                                .duration(100)
-                                .attr('opacity', 0.85);
+                                .duration(300)
+                                .attr('opacity', 0.7);
                             if (dataset == 'temp') {
                                 mouseover(event, `CPU ${index}`, `${d[`bp${bp}_sb${sb}_cpu_${index}_temp`]} °C`,
                                 bp, sb)
@@ -221,7 +220,13 @@ export default {
                                 .duration(100)
                                 .attr('opacity', '1');
                             mouseout(event, d)
-                        });
+                        })
+                        .on('click', (event, d) => {
+                            d3.selectAll('.' + this.getAttribute('class'))
+                                .transition()
+                                // .duration(100)
+                                .attr('opacity', 0.85);
+                        })
                 }   
                 
             }
@@ -271,7 +276,7 @@ export default {
                 update(parameter, bp_select, sb_select)
             })
             const chartContainer = d3.select('#heatmap-svg')
-                .attr('viewBox', [0, 0, this.svgSizeBf.width, this.svgSizeBf.height])                
+                .attr('viewBox', [0, 0, this.svgSizeBf.width, this.svgSizeBf.height])     
             chart_init(chartContainer, this, bp_err, sb_err, temp_table_err_bf, 'temp', true, true, true)
 
             const chartContainer_af = d3.select('#heatmap-svg-af')
@@ -345,14 +350,14 @@ export default {
             </div>
             <div id="temp-heat-error-container" class="fixed-container">
                 <h3 id = 'error-h3'>Error node BP0 SB6</h3>
-                <div>
+                <div id = 'first-heatmap'>
                     <svg id="heatmap-svg" class = "svg-container-bf"></svg>
                     <svg id="heatmap-svg-af" class = "svg-container-af"></svg>
                 </div>
                 <div class = "tooltip-heat"></div>
             </div>
                 
-            <div>
+            <div class = 'other-node'>
                 <h3 class='h3-inline'>BP0 SB0</h3>
                 <svg id="heatmap-bp0-sb0-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp0-sb0-af" class = "svg-container-af"></svg>
@@ -375,18 +380,15 @@ export default {
             
         </div>
         <div v-else>
-            <div class="fixed-container">
+            <div class="other-node">
                 
-                <!-- <h3 class='h3-inline'>BP0 SB6</h3>
-                <svg id="heatmap-bp0-sb6-bf" class = "svg-container-bf"></svg>
-                <svg id="heatmap-bp0-sb6-af" class = "svg-container-af"></svg> -->
-                <h3 class='h3-inline'>BP0 SB7</h3>
+                <h3 class='h3-inline'>BP0&nbsp;&nbsp;SB7</h3>
                 <svg id="heatmap-bp0-sb7-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp0-sb7-af" class = "svg-container-af"></svg>
-                <h3 class='h3-inline'>BP0 SB8</h3>
+                <h3 class='h3-inline'>BP0&nbsp;&nbsp;SB8</h3>
                 <svg id="heatmap-bp0-sb8-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp0-sb8-af" class = "svg-container-af"></svg>
-                <h3 class='h3-inline'>BP0 SB9</h3>
+                <h3 class='h3-inline'>BP0&nbsp;&nbsp;SB9</h3>
                 <svg id="heatmap-bp0-sb9-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp0-sb9-af" class = "svg-container-af"></svg>
                 <h3 class='h3-inline'>BP0 SB10</h3>
@@ -396,34 +398,34 @@ export default {
                 <svg id="heatmap-bp0-sb11-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp0-sb11-af" class = "svg-container-af"></svg>
 
-                <h3 class='h3-inline'>BP1 SB0</h3>
+                <h3 class='h3-inline'>BP1&nbsp;&nbsp;SB0</h3>
                 <svg id="heatmap-bp1-sb0-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp1-sb0-af" class = "svg-container-af"></svg>
-                <h3 class='h3-inline'>BP1 SB1</h3>
+                <h3 class='h3-inline'>BP1&nbsp;&nbsp;SB1</h3>
                 <svg id="heatmap-bp1-sb1-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp1-sb1-af" class = "svg-container-af"></svg>
-                <h3 class='h3-inline'>BP1 SB2</h3>
+                <h3 class='h3-inline'>BP1&nbsp;&nbsp;SB2</h3>
                 <svg id="heatmap-bp1-sb2-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp1-sb2-af" class = "svg-container-af"></svg>
-                <h3 class='h3-inline'>BP1 SB3</h3>
+                <h3 class='h3-inline'>BP1&nbsp;&nbsp;SB3</h3>
                 <svg id="heatmap-bp1-sb3-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp1-sb3-af" class = "svg-container-af"></svg>
-                <h3 class='h3-inline'>BP1 SB4</h3>
+                <h3 class='h3-inline'>BP1&nbsp;&nbsp;SB4</h3>
                 <svg id="heatmap-bp1-sb4-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp1-sb4-af" class = "svg-container-af"></svg>
-                <h3 class='h3-inline'>BP1 SB5</h3>
+                <h3 class='h3-inline'>BP1&nbsp;&nbsp;SB5</h3>
                 <svg id="heatmap-bp1-sb5-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp1-sb5-af" class = "svg-container-af"></svg>
-                <h3 class='h3-inline'>BP1 SB6</h3>
+                <h3 class='h3-inline'>BP1&nbsp;&nbsp;SB6</h3>
                 <svg id="heatmap-bp1-sb6-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp1-sb6-af" class = "svg-container-af"></svg>
-                <h3 class='h3-inline'>BP1 SB7</h3>
+                <h3 class='h3-inline'>BP1&nbsp;&nbsp;SB7</h3>
                 <svg id="heatmap-bp1-sb7-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp1-sb7-af" class = "svg-container-af"></svg>
-                <h3 class='h3-inline'>BP1 SB8</h3>
+                <h3 class='h3-inline'>BP1&nbsp;&nbsp;SB8</h3>
                 <svg id="heatmap-bp1-sb8-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp1-sb8-af" class = "svg-container-af"></svg>
-                <h3 class='h3-inline'>BP1 SB9</h3>
+                <h3 class='h3-inline'>BP1&nbsp;&nbsp;SB9</h3>
                 <svg id="heatmap-bp1-sb9-bf" class = "svg-container-bf"></svg>
                 <svg id="heatmap-bp1-sb9-af" class = "svg-container-af"></svg>
                 <h3 class='h3-inline'>BP1 SB10</h3>
@@ -442,7 +444,7 @@ export default {
 
 <style scoped>
 .heatmapContainer {
-    width: 730px;
+    width: 700px;
 }
 .svg-container-bf {
     height: 105px;
@@ -460,7 +462,12 @@ export default {
     margin-top: 10px;
     /* margin-left: 10px; */
     width: 650;
-    background-color: blanchedalmond;
+    background-color:goldenrod;
+    margin-bottom: 10px;
+}
+.other-node {
+    margin-top: 10px;
+    background-color: #FFF8E7;
 }
 .tooltip-heat{
     position: absolute;
@@ -485,8 +492,11 @@ export default {
 #error-bar {
     display: block;
 }
+#first-heatmap{
+    margin-left: 72px;
+}
 .h3-inline {
-    float:left;
+    float: left;
     display: flex;
 }
 </style>

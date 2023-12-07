@@ -64,9 +64,9 @@ export default {
   <!-- Part 2 -->  
   <v-container  class="d-flex flex-column flex-nowrap">
     <v-row>
-      <h2>Heatmap Layout for Temperature</h2>
+      <h2>Temperature</h2>
       <HeatmapView :dataset="tempDataset" />
-      <h2>Heatmap Layout for Voltage</h2>
+      <h2>Voltage</h2>
       <HeatmapView :dataset="volDataset" />
     </v-row>
   </v-container>

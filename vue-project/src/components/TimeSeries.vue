@@ -3,6 +3,7 @@ import * as d3 from "d3";
 import { isEmpty, debounce, range } from 'lodash';
 import { ComponentSize, Margin, ContainerRect } from '../types';
 import { errorPeriod, errorNode, normalNode } from '../colors';
+import { NONAME } from "dns";
 
 const temp_data_err = await d3.csv('../../data/temp-data-l07.csv');
 const temp_data_norm = await d3.csv('../../data/temp-data-m05.csv');
@@ -119,6 +120,7 @@ export default {
             normRack: 'm05',
             showErrReadings: true,
             showNormReadings: true,
+            selected: null,
         }
     }, 
     computed: {
@@ -253,6 +255,7 @@ export default {
 
             const linesGroup = chartContainer.append('g').attr('id', 'lines-group' + this.chartId);
             const errLinesGroup = chartContainer.append('g').attr('id', 'err-lines-group' + this.chartId);
+            let selectedLine = null
 
             // normal readings
             const norm_lines = Object.keys(data_n).forEach(node => {
@@ -282,7 +285,7 @@ export default {
 
                     // tooltip to display node
                     path.on('mouseover', function (event, d) {
-                        if (linesGroup.style('display') !== 'none') {
+                        if (linesGroup.style('display') !== 'none' && selectedLine == null) {
                             const [xPos, yPos] = d3.pointer(event);
                             d3.select(this).style("cursor", "pointer");
 
@@ -318,24 +321,28 @@ export default {
                                 .attr('stroke-width', 2);
                         }
                     })
+                    path.on('mousedown', function () {
+                        selectedLine = d3.select(this);
+                    })
                     .on('mouseout', function () {
-                        dataPoints.style('opacity', 0);
+                        if (selectedLine == null) {
+                            dataPoints.style('opacity', 0);
 
-                        // hide tooltip
-                        tooltip.transition()
-                            .duration(500)
-                            .style('opacity', 0);
+                            // hide tooltip
+                            tooltip.transition()
+                                .duration(500)
+                                .style('opacity', 0);
+                            // resetting styles for all lines
+                            linesGroup.selectAll('path')
+                                .attr('stroke', normalNode)
+                                .attr('stroke-opacity', 0.9)
+                                .attr('stroke-width', 0.9);
 
-                        // resetting styles for all lines
-                        linesGroup.selectAll('path')
-                            .attr('stroke', normalNode)
-                            .attr('stroke-opacity', 0.9)
-                            .attr('stroke-width', 0.9);
-
-                        errLinesGroup.selectAll('path')
-                            .attr('stroke', errorNode)
-                            .attr('stroke-opacity', 0.9)
-                            .attr('stroke-width', 0.9);
+                            errLinesGroup.selectAll('path')
+                                .attr('stroke', errorNode)
+                                .attr('stroke-opacity', 0.9)
+                                .attr('stroke-width', 0.9);
+                        }
                     });
                     
                     path.transition()
@@ -378,57 +385,64 @@ export default {
 
                     // tooltip to display node
                     path.on('mouseover', function (event, d) {
-                        const [xPos, yPos] = d3.pointer(event);
-                        d3.select(this).style("cursor", "pointer");
+                        if (linesGroup.style('display') !== 'none' && selectedLine == null) {
+                            const [xPos, yPos] = d3.pointer(event);
+                            d3.select(this).style("cursor", "pointer");
 
-                        errDataPoints
-                            .filter(point => data[node].some(dataPoint => dataPoint.value === point.value && dataPoint.check_time === point.check_time))
-                            .style('opacity', 1);
+                            errDataPoints
+                                .filter(point => data[node].some(dataPoint => dataPoint.value === point.value && dataPoint.check_time === point.check_time))
+                                .style('opacity', 1);
+                            
+                            tooltip.transition()
+                                .duration(200)
+                                .style('opacity', .9);
+
+                            const lineEnd = path.node().getPointAtLength(path.node().getTotalLength());
+            
+                            tooltip.html(`${String(node).includes('temp') ? node.slice(0, -5) : node.slice(0, -4)}`)
+                                .style('left', `${lineEnd.x + chartContainer.node().getBoundingClientRect().left}px`)
+                                .style('top', `${lineEnd.y + chartContainer.node().getBoundingClientRect().top}px`)
+                                .style('opacity', 1);
                         
-                        tooltip.transition()
-                            .duration(200)
-                            .style('opacity', .9);
+                            errLinesGroup.selectAll('path')
+                                .filter(otherPath => otherPath !== path.node())
+                                .attr('stroke', 'lightgray')
+                                .attr('stroke-opacity', 0.6);
 
-                        const lineEnd = path.node().getPointAtLength(path.node().getTotalLength());
-        
-                        tooltip.html(`${String(node).includes('temp') ? node.slice(0, -5) : node.slice(0, -4)}`)
-                            .style('left', `${lineEnd.x + chartContainer.node().getBoundingClientRect().left}px`)
-                            .style('top', `${lineEnd.y + chartContainer.node().getBoundingClientRect().top}px`)
-                            .style('opacity', 1);
-                    
-                        errLinesGroup.selectAll('path')
-                            .filter(otherPath => otherPath !== path.node())
-                            .attr('stroke', 'lightgray')
-                            .attr('stroke-opacity', 0.6);
+                            linesGroup.selectAll('path')
+                                .filter(otherPath => otherPath !== path.node())
+                                .attr('stroke', 'lightgray')
+                                .attr('stroke-opacity', 0.6);
 
-                        linesGroup.selectAll('path')
-                            .filter(otherPath => otherPath !== path.node())
-                            .attr('stroke', 'lightgray')
-                            .attr('stroke-opacity', 0.6);
-
-                        // highlighting the hovered line
-                        path.attr('stroke-opacity', 1)
-                            .attr('stroke', errorNode)
-                            .attr('stroke-width', 2);
+                            // highlighting the hovered line
+                            path.attr('stroke-opacity', 1)
+                                .attr('stroke', errorNode)
+                                .attr('stroke-width', 2);
+                        }
+                    })
+                    path.on('mousedown', function () {
+                        selectedLine = d3.select(this);
                     })
                     // hide tooltip
                     .on('mouseout', function () {
-                        errDataPoints.style('opacity', 0);
+                        if (selectedLine == null) {
+                            errDataPoints.style('opacity', 0);
 
-                        tooltip.transition()
-                            .duration(500)
-                            .style('opacity', 0);
+                            tooltip.transition()
+                                .duration(500)
+                                .style('opacity', 0);
 
-                        // resetting styles for all lines
-                        errLinesGroup.selectAll('path')
-                            .attr('stroke', errorNode)
-                            .attr('stroke-opacity', 0.9)
-                            .attr('stroke-width', 0.9);
+                            // resetting styles for all lines
+                            errLinesGroup.selectAll('path')
+                                .attr('stroke', errorNode)
+                                .attr('stroke-opacity', 0.9)
+                                .attr('stroke-width', 0.9);
 
-                        linesGroup.selectAll('path')
-                            .attr('stroke', normalNode)
-                            .attr('stroke-opacity', 0.9)
-                            .attr('stroke-width', 0.9);
+                            linesGroup.selectAll('path')
+                                .attr('stroke', normalNode)
+                                .attr('stroke-opacity', 0.9)
+                                .attr('stroke-width', 0.9);
+                        }
                     });
                     
                     path.transition()
@@ -442,7 +456,38 @@ export default {
                         })
                         .attr('stroke-dashoffset', 0);
                 });
-                
+
+                chartContainer.on('click', function (event) {
+                    const clickedElement = event.target;
+                    const isLineOrDataPoint = clickedElement.matches('path') || clickedElement.matches('.data-point');
+                    if (!isLineOrDataPoint) {
+                        let errPoints = errLinesGroup.selectAll('.data-point')
+                        let points = linesGroup.selectAll('.data-point')
+
+                        errPoints.style('opacity', 0);
+                        points.style('opacity', 0);
+
+                        // hide tooltip
+                        tooltip.transition()
+                            .duration(500)
+                            .style('opacity', 0);
+
+                        // resetting styles for all lines
+                        linesGroup.selectAll('path')
+                            .attr('stroke', normalNode)
+                            .attr('stroke-opacity', 0.9)
+                            .attr('stroke-width', 0.9);
+
+                        errLinesGroup.selectAll('path')
+                            .attr('stroke', errorNode)
+                            .attr('stroke-opacity', 0.9)
+                            .attr('stroke-width', 0.9);
+
+                        // Clear the selected line
+                        selectedLine = null;
+                    }
+                });
+
                 // let legendX = this.margin.right + this.chartSize.height - this.margin.bottom
                 // let legendY = this.margin.bottom + this.margin.top
                 // let legendSymbolSize = 10

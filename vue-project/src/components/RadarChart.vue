@@ -2,61 +2,59 @@
 import * as d3 from "d3";
 import { isEmpty, debounce, range } from 'lodash';
 import { ComponentSize, Margin, ContainerRect } from '../types';
-import { errorPeriod, errorNode, normalNode } from '../colors';
 
-const csvData = await d3.csv('../../data/head.csv');
-
-const rack_err = 'l7'
-const err_x = 18
-const err_y = 2
-const rack_norm = 'm5'
-
-function groupBy(arr, property) {
-    return arr.reduce(function (acc, obj) {
-        let key = obj[property]
-        if (!acc[key]) {
-            acc[key] = []
-        }
-        acc[key].push(obj)
-            return acc
-        }, 
-    {})
-}
-
-// modify the data here
-let datum = [];
-csvData.forEach(d => {
-    
-    let Obj = {
-        rack: d.rack,
-        check_time: d3.timeParse('%Y-%m-%d %H:%M:%S')(d.check_time),
-        values: [
-            // { axis: "pressure_0", value: +d.pressure_0 },
-            // { axis: "pressure_1", value: +d.pressure_1 },
-            { axis: "distance", value: ((+d.x - err_x) ** 2 + (+d.y - err_y) ** 2) ** 0.5 }, // distance from error rack
-            { axis: "a1_fan1_rpm", value: +d.a1_fan1_rpm },
-            { axis: "bp0_sb0_cpu_0_temp", value: +d.bp0_sb0_cpu_0_temp},
-            { axis: "bp0_sb0_cpu_6_temp", value: +d.bp0_sb6_cpu_0_temp},
-            { axis: "bp0_sb0_ibc_0_vol", value: +d.bp0_sb0_ibc_0_vol},
-        ],
-    }
-    datum.push(Obj)
-})
+let datum = []
+let datasets = [
+    '../../data/rack-data-14:30:01.csv',
+    '../../data/rack-data-14:55:01.csv',
+    '../../data/rack-data-15:00:01.csv'
+]
 
 export default {
+    props: {
+        dataset: {
+            type: String,
+            required: true,
+        }
+    },
     data() {
         return {
             size: { width: 0, height: 0 } as ComponentSize,
-            margin: {left: 30, right: 20, top: 20, bottom: 60} as Margin,
+            margin: {left: 10, right: 10, top: 20, bottom: 60} as Margin,
         }
     }, 
     computed: {
         rerender() {
-            return (!isEmpty(datum)) && this.size
+            return (!isEmpty(this.dataset)) && this.size
+        },
+        svgId() {
+            return `radar-svg-${this.dataset}`;
         }
     },
-    created() {
-        if (isEmpty(datum)) return;
+    async created() {
+        if (isEmpty(this.dataset)) return;
+        let csvData = await d3.csv(datasets[+this.dataset]);
+
+        // modify the data here
+        datum = []
+        csvData.forEach(d => {
+            let Obj = {
+                rack: d.rack,
+                check_time: d3.timeParse('%Y-%m-%d %H:%M:%S')(d.check_time),
+                values: [
+                    { axis: "distance", value: +d.distance}, // distance from error rack
+                    { axis: "pol_a_temp", value: +d.pol_a_temp_max },
+                    { axis: "pol_b_temp", value: +d.pol_b_temp_max },
+                    { axis: "pol_a_vol", value: +d.pol_a_vol_max },
+                    { axis: "pol_b_vol", value: +d.pol_b_vol_max },
+                    { axis: "pol_c_vol", value: +d.pol_c_vol_max },
+                    { axis: "a_rpm", value: +d.a_rpm_max },
+                    { axis: "b_rpm", value: +d.b_rpm_max },
+                    { axis: "water_temp", value: +d.water_temp },
+                ],
+            }
+            datum.push(Obj)
+        })
         this.initChart();
     },
     methods: {
@@ -69,7 +67,8 @@ export default {
             return;
         },
         initChart() {
-            let chartContainer = d3.select('#radar-svg')
+            if (datum.length == 0) return;
+            let chartContainer = d3.select('#radar-svg-' + this.dataset)
                 .attr('width', this.size.width)
                 .attr('height', this.size.height)                
                 .attr('viewBox', [0, 0, this.size.width, this.size.height])
@@ -152,6 +151,17 @@ export default {
             function colorcode(i) {
                 return d3.schemeCategory10[i]
             }
+
+            const chartTitle = chartContainer.append('text')
+                .attr('x', this.size.width / 2 + this.margin.left)
+                .attr('y', this.size.height - this.margin.top + 10)
+                .attr('text-anchor', 'middle')
+                .style('fill', 'gray')
+                .style('font-style', 'bold')
+                .style('font-size', '18')
+                .style('font-family', 'Helvetica Neue, sans-serif')
+                .text(datasets[+this.dataset].substring(datasets[+this.dataset].length-12, datasets[+this.dataset].length-4))
+
             // radar chart curve version
             let lineRadial = d3.lineRadial()
                 .curve(d3.curveCardinalClosed.tension(0.5)) // the higher the tension, the more straigt the line is
@@ -192,16 +202,19 @@ export default {
 }
 </script>
 <template>
-    <div ref="radarChartContainer" class="container d-flex">
-        <svg id="radar-svg" width="100%" height="100%"></svg>
+    <div ref="radarChartContainer" class="radar-container">
+        <svg :id="svgId"></svg>
         <div class="tooltip"></div>
     </div>
 </template>
 
 <style scoped>
-.container {
-    height: 600px;
-    width: 800px;
+.radar-container {
+    height: 400px;
+    width: 500px;
+    font-family: 'Helvetica Neue', sans-serif;
+    text-align: center;
+    font-size: 14px;
 }
 
 .tooltip {

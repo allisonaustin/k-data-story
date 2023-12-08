@@ -210,11 +210,11 @@ export default {
             let radarWrapper = center.selectAll(".radar-wrapper")
                 .data(datum).enter()
                 .append('g')
+                .attr('id', 'radar-wrapper' + this.dataset)
+
             
             let background = radarWrapper.append("path")
                 .attr('class', d => d.rack)
-                .attr('class', `dataset-${this.dataset}`)
-                // .attr('class', "background")
                 .attr("d", (d) => lineRadial(d.values))
                 .attr("stroke", (d, i) => colorcode(d.rack))
                 .attr('stroke-width', 0.5)
@@ -222,7 +222,7 @@ export default {
                 .style('opacity', 0.2)
 
             let path = radarWrapper.append("path")
-                .attr('class', d => 'tp'+d.rack)
+                // .attr('class', d => 'tp'+d.rack)
                 .attr('class', d => 'front')
                 .attr("d", (d) => lineRadial(d.values))
                 .attr("stroke", (d, i) => colorcode(d.rack))
@@ -244,24 +244,23 @@ export default {
                     .attr('y', 0)
                     .attr('alignment-baseline', 'middle')
                     .text(d => d)
-                    .on('click', (event, d) => {
-                        let currentOpacity = d3.select('.'+d).style('opacity')
-                        d3.selectAll('.'+d).style('opacity', currentOpacity > 0? 0:0.2)
-                        d3.selectAll('.tp'+d).style('opacity', currentOpacity > 0? 0:1);
+                legend_label
+                    .on('mouseover', (event, d) => {
+                        let nowPath = d3.selectAll('.'+d)
+                        let allPath = d3.selectAll('path')
+                            .style('opacity', 0)
+                        nowPath.style('opacity', 0.2)
+                        let allLine = d3.selectAll('.front')
+                        allLine.style('opacity', 1)
+
+                        
+                        // d3.selectAll('.'+d).style('opacity', currentOpacity > 0? 0:0.2)
+                        // d3.selectAll('.tp'+d).style('opacity', currentOpacity > 0? 0:1);
                     })
-                    // .on('mouseover', (event, d) => {
-                    //     let path_class = d3.selectAll('.'+d)
-                    //     console.log(path_class)
-                    //     d3.selectAll('path')
-                    //     .filter(otherPath => otherPath !== path_class[0])
-                    //     .style('opacity', 0)
-                        // d3.selectAll('.'+d).style('opacity', 0.2)
-                        // d3.selectAll('.tp'+d).style('opacity', 1);
-                    // })
-                    // .on('mouseout', (event, d) => {
-                    //     d3.selectAll('.background').style('opacity', 0.2)
-                    //     d3.selectAll('.front').style('opacity', 1);
-                    // })
+                    .on('mouseout', (event, d) => {
+                        d3.selectAll('path').style('opacity', 0.2)
+                        d3.selectAll('.front').style('opacity', 1);
+                    })
                 legend_group.append('circle')
                     .attr('r', 5)
                     .attr('cx', (d, i) => 10 + i * 50)
@@ -271,7 +270,7 @@ export default {
                     .on('click', (event, d) => {
                         let currentOpacity = d3.select('.'+d).style('opacity')
                         d3.selectAll('.'+d).style('opacity', currentOpacity > 0? 0:0.2);
-                        d3.selectAll('.tp'+d).style('opacity', currentOpacity > 0? 0:1);
+                        // d3.selectAll('.tp'+d).style('opacity', currentOpacity > 0? 0:1);
                     }) 
             }
             

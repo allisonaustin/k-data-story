@@ -67,7 +67,8 @@ export default {
   <div class="full-width container">
     <h2>Temperature Heatmap</h2>
     <div class="intro">
-      <p>The following visualizations compare the temperature values between each node in error rack L07. For each node, the left map shows the data before the error occured, and the right map shows the data after the error occured.</p>
+      <p>The following heatmaps compare the temperature values between each node in error rack L07. For each node, the left map shows the data before the error occured, and the right map shows the data after the error occured. 
+        The colored one represents the error node. </p>
     </div>
     <div id="sec-container" class="full-width container">
           <HeatmapView :dataset="tempDataset" />
@@ -77,7 +78,7 @@ export default {
     <div class="full-width">
       <h2 style="padding-top:20px">System View</h2>
       <div>
-        <p>The following radar chart shows the </p>
+        <p>The following radar charts are the snapshots of three different time slot. Each of them shows the deviation between the error node l07 and the neighboring node around it. An axis scales on the min and max of that variable. Hover on the legend will show the specific rack on the snapshots.</p>
       </div>
       <div class="radar-container">
         <div class="row-container">

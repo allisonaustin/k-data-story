@@ -76,12 +76,6 @@ export default {
                 .attr('width', this.size.width)
                 .attr('height', this.size.height)                
                 .attr('viewBox', [0, 0, this.size.width, this.size.height])
-                // .on('mouseover', (event, d) => {
-                //     d3.selectAll(".scale-label").transition().style('opacity', 1)
-                // })
-                // .on('mouseout', (event, d) => {
-                //     d3.selectAll(".scale-label").transition().style('opacity', 0)
-                // })
             
             const tooltip = d3.select('.tooltip')
             const numAxes = datum[0].values.length;
@@ -99,10 +93,10 @@ export default {
             let group = chartContainer.append('g')
                 .attr(`transform`, `translate(${this.margin.left}, ${this.margin.top})`)
                 .on('mouseover', (event, d) => {
-                    d3.selectAll(".scale-label").transition().style('opacity', 1)
+                    d3.selectAll(".scale-label"+this.dataset).transition().style('opacity', 1)
                 })
                 .on('mouseout', (event, d) => {
-                    d3.selectAll(".scale-label").transition().style('opacity', 0)
+                    d3.selectAll(".scale-label"+this.dataset).transition().style('opacity', 0)
                 })
             const keys = datum[0].values.map(d => d.axis);
             let theta = -Math.PI/2
@@ -165,7 +159,7 @@ export default {
             })
             for (let index = 1; index < radiusList.length - 1; index++) {
                 axes.append('text')
-                .attr('class', 'scale-label')
+                .attr('class', 'scale-label'+this.dataset)
                 .attr('x', (d, i) => origin[0] + radiusList[index] * Math.cos(angleList[i] - Math.PI/2))
                 .attr('y', (d, i) => origin[1] + radiusList[index] * Math.sin(angleList[i] - Math.PI/2))
                 .text((d, i) => Math.round(extentList[i][1] * index / radiusList.length * 10) / 10)
@@ -211,7 +205,7 @@ export default {
                 .attr("stroke", (d, i) => colorcode(d.rack))
                 .attr('stroke-width', 0.5)
                 .attr('fill', (d, i) => colorcode(d.rack))
-                .style('opacity', 0.3)
+                .style('opacity', 0.2)
 
             let path = radarWrapper.append("path")
                 .attr('class', d => 'tp'+d.rack)
@@ -228,28 +222,28 @@ export default {
             if (this.dataset == '1') {
                 let legend_group = legendContainer.append('g').attr('transform', `translate(${this.margin.left},${this.margin.top})`)
                 .selectAll('.mylegend')
-                .data(datum).enter()
+                .data(rack_list).enter()
                 .append('g')
                 legend_group.append('text')
                     .attr('x', (d, i) => 20 + i * 50)
                     .attr('y', 0)
                     .attr('alignment-baseline', 'middle')
-                    .text(d => d.rack)
+                    .text(d => d)
                     .on('click', (event, d) => {
-                        let currentOpacity = d3.select('.'+d.rack).style('opacity')
-                        d3.selectAll('.'+d.rack).style('opacity', currentOpacity > 0? 0:0.2)
-                        d3.selectAll('.tp'+d.rack).style('opacity', currentOpacity > 0? 0:1);
+                        let currentOpacity = d3.select('.'+d).style('opacity')
+                        d3.selectAll('.'+d).style('opacity', currentOpacity > 0? 0:0.2)
+                        d3.selectAll('.tp'+d).style('opacity', currentOpacity > 0? 0:1);
                     })
                 legend_group.append('circle')
                     .attr('r', 5)
                     .attr('cx', (d, i) => 10 + i * 50)
                     .attr('cy', 0)
-                    .attr('fill', (d, i) => colorcode(d.rack))
+                    .attr('fill', (d, i) => colorcode(d))
                     .style('opacity', 0.5)
                     .on('click', (event, d) => {
-                        let currentOpacity = d3.select('.'+d.rack).style('opacity')
-                        d3.selectAll('.'+d.rack).style('opacity', currentOpacity > 0? 0:0.3);
-                        d3.selectAll('.tp'+d.rack).style('opacity', currentOpacity > 0? 0:1);
+                        let currentOpacity = d3.select('.'+d).style('opacity')
+                        d3.selectAll('.'+d).style('opacity', currentOpacity > 0? 0:0.2);
+                        d3.selectAll('.tp'+d).style('opacity', currentOpacity > 0? 0:1);
                     }) 
             }
             

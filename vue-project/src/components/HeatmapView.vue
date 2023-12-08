@@ -105,7 +105,7 @@ export default {
             }
             function mouseout(event, d) {
                 tooltip.transition()
-                    .duration(100)
+                    .duration(0)
                     .style("opacity", 0);
             }
             
@@ -199,28 +199,21 @@ export default {
                                 }
                                     
                             })
-                        // .on('mouseover', function (event, d) {
-                        //     d3.selectAll('.' + this.getAttribute('class'))
-                        //         .transition()
-                        //         .duration(300)
-                        //         .attr('opacity', 0.7);
-                        //     if (dataset == 'temp') {
-                        //         mouseover(event, `CPU ${index}`, `${d[`bp${bp}_sb${sb}_cpu_${index}_temp`]} °C`,
-                        //         bp, sb)
-                        //     }
-                        //     else {
-                        //         mouseover(event, `IBC ${index}`, `${d[`bp${bp}_sb${sb}_ibc_${index}_vol`]} V`,
-                        //         bp, sb)
-                        //     }
-                            
-                        // })
-                        // .on('mouseout', function (event, d) {
-                        //     d3.selectAll('.' + this.getAttribute('class'))
-                        //         .transition()
-                        //         .duration(100)
-                        //         .attr('opacity', '1');
-                        //     mouseout(event, d)
-                        // })
+                        .on('mouseover', function (event, d) {
+                            d3.selectAll('.' + this.getAttribute('class'))
+                                .transition()
+                                // .duration(300)
+                                .attr('opacity', 0.7);
+                            mouseover(event, `CPU ${index}`, `${d[`bp${bp}_sb${sb}_cpu_${index}_temp`]} °C`,
+                                bp, sb)
+                        })
+                        .on('mouseout', function (event, d) {
+                            d3.selectAll('.' + this.getAttribute('class'))
+                                .transition()
+                                // .duration(100)
+                                .attr('opacity', '1');
+                            mouseout(event, d)
+                        })
                         // .on('click', (event, d) => {
                         //     d3.selectAll('.' + this.getAttribute('class'))
                         //         .transition()
@@ -484,7 +477,7 @@ export default {
         </div>
         <div v-else>
         </div>
-        <!-- <div class = "tooltip-heat"></div> -->
+        <div class = "tooltip-heat"></div>
     </div>
 </template>
 

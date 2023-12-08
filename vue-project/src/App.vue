@@ -44,7 +44,7 @@ export default {
     </div>
   </div>
   <!-- Part 1 -->
-  <!-- <div class="full-width container">
+  <div class="full-width container">
     <div id="main-container" class="fixed-container">
       <div class="fixed-left">
         <div id="rack-space">
@@ -62,9 +62,9 @@ export default {
         </div>
       </div>
     </div>
-  </div> -->
+  </div>
   <!-- Part 2 -->
-  <!-- <div class="full-width container">
+  <div class="full-width container">
     <h2>Temperature Heatmap</h2>
     <div class="intro">
       <p>The following visualizations compare the temperature values between each node in error rack L07. For each node, the left map shows the data before the error occured, and the right map shows the data after the error occured.</p>
@@ -72,10 +72,10 @@ export default {
     <div id="sec-container" class="full-width container">
           <HeatmapView :dataset="tempDataset" />
     </div>
-  </div> -->
+  </div>
   <!-- Part 3 -->
     <div class="full-width">
-      <h2>System View</h2>
+      <h2 style="padding-top:20px">System View</h2>
       <div class="radar-container">
         <div class="row-container">
           <div class="col">

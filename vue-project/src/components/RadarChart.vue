@@ -86,6 +86,10 @@ export default {
                 .attr('width', this.size.width)
                 .attr('height', this.size.height)                
                 .attr('viewBox', [0, 0, this.size.width, this.size.height])
+
+            let chart1 = d3.select('#radar-svg-0')
+            let chart2 = d3.select('#radar-svg-1')
+            let chart3 = d3.select('#radar-svg-2')
             
             const tooltip = d3.select('.tooltip')
             const numAxes = datum[0].values.length;
@@ -247,9 +251,15 @@ export default {
                 legend_label
                     .on('mouseover', (event, d) => {
                         let nowPath = d3.selectAll('.'+d)
-                        let allPath = d3.selectAll('path')
+
+                        chart1.selectAll('path')
+                            .style('opacity', 0)
+                        chart2.selectAll('path')
+                            .style('opacity', 0)
+                        chart3.selectAll('path')
                             .style('opacity', 0)
                         nowPath.style('opacity', 0.2)
+
                         let allLine = d3.selectAll('.front')
                         allLine.style('opacity', 1)
 
@@ -258,7 +268,10 @@ export default {
                         // d3.selectAll('.tp'+d).style('opacity', currentOpacity > 0? 0:1);
                     })
                     .on('mouseout', (event, d) => {
-                        d3.selectAll('path').style('opacity', 0.2)
+                        chart1.selectAll('path').style('opacity', 0.2)
+                        chart2.selectAll('path').style('opacity', 0.2)
+                        chart3.selectAll('path').style('opacity', 0.2)
+
                         d3.selectAll('.front').style('opacity', 1);
                     })
                 legend_group.append('circle')

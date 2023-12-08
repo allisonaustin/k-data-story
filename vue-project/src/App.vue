@@ -78,7 +78,7 @@ export default {
     <div class="full-width">
       <h2 style="padding-top:20px">System View</h2>
       <div>
-        <p>The following radar charts are the snapshots of three different time slot. Each of them shows the deviation between the error node l07 and the neighboring node around it. An axis scales on the min and max of that variable. Hover on the legend will show the specific rack on the snapshots.</p>
+        <p>The following radar charts are the snapshots of three different time slot. Each of them shows the deviation between the error node l07 and the neighboring node around it. An axis scales on the min and max of that variable.</p>
       </div>
       <div class="radar-container">
         <div class="row-container">

@@ -4,7 +4,7 @@ import { isEmpty, debounce, range } from 'lodash';
 import { ComponentSize, Margin, ContainerRect } from '../types';
 
 let datum = []
-const rack_list = ['l07', 'k06', 'k07', 'l06', 'm06', 'm07']
+const rack_list = ['l07', 'k06', 'k07', 'l06', 'm05', 'm06', 'm07']
 let datasets = [
     '../../data/rack-data-14:30:01.csv',
     '../../data/rack-data-14:55:01.csv',
@@ -76,6 +76,12 @@ export default {
                 .attr('width', this.size.width)
                 .attr('height', this.size.height)                
                 .attr('viewBox', [0, 0, this.size.width, this.size.height])
+                // .on('mouseover', (event, d) => {
+                //     d3.selectAll(".scale-label").transition().style('opacity', 1)
+                // })
+                // .on('mouseout', (event, d) => {
+                //     d3.selectAll(".scale-label").transition().style('opacity', 0)
+                // })
             
             const tooltip = d3.select('.tooltip')
             const numAxes = datum[0].values.length;
@@ -92,7 +98,12 @@ export default {
             
             let group = chartContainer.append('g')
                 .attr(`transform`, `translate(${this.margin.left}, ${this.margin.top})`)
-            
+                .on('mouseover', (event, d) => {
+                    d3.selectAll(".scale-label").transition().style('opacity', 1)
+                })
+                .on('mouseout', (event, d) => {
+                    d3.selectAll(".scale-label").transition().style('opacity', 0)
+                })
             const keys = datum[0].values.map(d => d.axis);
             let theta = -Math.PI/2
             let angleList = [] as number[]
@@ -200,15 +211,16 @@ export default {
                 .attr("stroke", (d, i) => colorcode(d.rack))
                 .attr('stroke-width', 0.5)
                 .attr('fill', (d, i) => colorcode(d.rack))
-                .style('opacity', 0.1)
+                .style('opacity', 0.3)
 
             let path = radarWrapper.append("path")
-                .attr('class', d => 'line' + d.rack)
+                .attr('class', d => 'tp'+d.rack)
                 .attr("d", (d) => lineRadial(d.values))
                 .attr("stroke", (d, i) => colorcode(d.rack))
                 .attr('stroke-width', 1)
                 .attr('fill', 'none')
                 .style('opacity', 1)
+
             const legendContainer = d3.select('#legend-svg')
                 .attr('width', this.legend_size.width)
                 .attr('height', this.legend_size.height)                
@@ -225,8 +237,8 @@ export default {
                     .text(d => d.rack)
                     .on('click', (event, d) => {
                         let currentOpacity = d3.select('.'+d.rack).style('opacity')
-                        d3.selectAll('.'+d.rack).style('opacity', currentOpacity > 0? 0:0.1);
-                        d3.selectAll('.line'+d.rack).style('opacity', currentOpacity > 0? 0:1);
+                        d3.selectAll('.'+d.rack).style('opacity', currentOpacity > 0? 0:0.2)
+                        d3.selectAll('.tp'+d.rack).style('opacity', currentOpacity > 0? 0:1);
                     })
                 legend_group.append('circle')
                     .attr('r', 5)
@@ -237,6 +249,7 @@ export default {
                     .on('click', (event, d) => {
                         let currentOpacity = d3.select('.'+d.rack).style('opacity')
                         d3.selectAll('.'+d.rack).style('opacity', currentOpacity > 0? 0:0.3);
+                        d3.selectAll('.tp'+d.rack).style('opacity', currentOpacity > 0? 0:1);
                     }) 
             }
             

@@ -249,15 +249,15 @@ export default {
                         d3.selectAll('.'+d).style('opacity', currentOpacity > 0? 0:0.2)
                         d3.selectAll('.tp'+d).style('opacity', currentOpacity > 0? 0:1);
                     })
-                    .on('mouseover', (event, d) => {
-                        let path_class = d3.selectAll('.'+d)
-                        console.log(path_class)
-                        d3.selectAll('path')
-                        .filter(otherPath => otherPath !== path_class[0])
-                        .style('opacity', 0)
+                    // .on('mouseover', (event, d) => {
+                    //     let path_class = d3.selectAll('.'+d)
+                    //     console.log(path_class)
+                    //     d3.selectAll('path')
+                    //     .filter(otherPath => otherPath !== path_class[0])
+                    //     .style('opacity', 0)
                         // d3.selectAll('.'+d).style('opacity', 0.2)
                         // d3.selectAll('.tp'+d).style('opacity', 1);
-                    })
+                    // })
                     // .on('mouseout', (event, d) => {
                     //     d3.selectAll('.background').style('opacity', 0.2)
                     //     d3.selectAll('.front').style('opacity', 1);

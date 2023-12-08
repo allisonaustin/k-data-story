@@ -91,7 +91,7 @@ if __name__ == "__main__":
     vol_data_norm.to_csv(out_paths[3], index=False)
 
     # rack data
-    rack_list = ['k06', 'k07', 'l06', 'm05', 'm06', 'm07']
+    rack_list = ['k06', 'k07', 'l06', 'l07', 'm05', 'm06', 'm07']
     rack_data_1 = process_rack_data(k_data, rack_list, 150314, 151177, err_x, err_y)
     rack_data_1.to_csv(out_paths[4], index=False)
     rack_data_2 = process_rack_data(k_data, rack_list, 154634, 155497, err_x, err_y)

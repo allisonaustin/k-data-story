@@ -337,7 +337,7 @@ export default {
     <div ref="heatmapContainer" class="heatmapContainer">
         <div v-if="dataset == 'temp'" id ="root">
             <div class="row">
-                <h5 class="error-label">Error rack</h5>
+                <h5 class="error-label">Error node</h5>
                 <svg id="temp-colorbar" class = "colorbar"></svg>
             </div>
             <div class="fixed"> 

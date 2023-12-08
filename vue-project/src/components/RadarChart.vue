@@ -4,6 +4,7 @@ import { isEmpty, debounce, range } from 'lodash';
 import { ComponentSize, Margin, ContainerRect } from '../types';
 
 let datum = []
+const rack_list = ['l07', 'k06', 'k07', 'l06', 'm06', 'm07']
 let datasets = [
     '../../data/rack-data-14:30:01.csv',
     '../../data/rack-data-14:55:01.csv',
@@ -20,6 +21,7 @@ export default {
     data() {
         return {
             size: { width: 0, height: 0 } as ComponentSize,
+            legend_size: { width: 400, height: 50 } as ComponentSize,
             margin: {left: 10, right: 10, top: 20, bottom: 60} as Margin,
         }
     }, 
@@ -35,6 +37,7 @@ export default {
         if (isEmpty(this.dataset)) return;
         let csvData = await d3.csv(datasets[+this.dataset]);
 
+        
         // modify the data here
         datum = []
         csvData.forEach(d => {
@@ -42,19 +45,20 @@ export default {
                 rack: d.rack,
                 check_time: d3.timeParse('%Y-%m-%d %H:%M:%S')(d.check_time),
                 values: [
-                    { axis: "distance", value: +d.distance}, // distance from error rack
-                    { axis: "pol_a_temp", value: +d.pol_a_temp_max },
-                    { axis: "pol_b_temp", value: +d.pol_b_temp_max },
-                    { axis: "pol_a_vol", value: +d.pol_a_vol_max },
-                    { axis: "pol_b_vol", value: +d.pol_b_vol_max },
-                    { axis: "pol_c_vol", value: +d.pol_c_vol_max },
-                    { axis: "a_rpm", value: +d.a_rpm_max },
-                    { axis: "b_rpm", value: +d.b_rpm_max },
-                    { axis: "water_temp", value: +d.water_temp },
+                    { axis: "distance", value: +d.distance, value_min: +d.distance}, // distance from error rack
+                    { axis: "pol_a_temp", value: +d.pol_a_temp_max, value_min: +d.pol_a_temp_min },
+                    { axis: "pol_b_temp", value: +d.pol_b_temp_max, value_min: +d.pol_b_temp_min },
+                    { axis: "pol_a_vol", value: +d.pol_a_vol_max, value_min: +d.pol_a_vol_min },
+                    { axis: "pol_b_vol", value: +d.pol_b_vol_max, value_min: +d.pol_b_vol_min },
+                    { axis: "pol_c_vol", value: +d.pol_c_vol_max, value_min: +d.pol_c_vol_min },
+                    { axis: "a_rpm", value: +d.a_rpm_max, value_min: +d.a_rpm_min },
+                    { axis: "b_rpm", value: +d.b_rpm_max, value_min: +d.b_rpm_min },
+                    { axis: "water_temp", value: +d.water_temp, value_min: +d.water_temp },
                 ],
             }
             datum.push(Obj)
         })
+        console.log(datum)
         this.initChart();
     },
     methods: {
@@ -97,9 +101,9 @@ export default {
                 theta += angleSlice
             }
             // background circle
-            let r = [0, radius / 4, 2 * radius / 4, 3 * radius / 4, radius]
+            let radiusList = [0, radius / 4, 2 * radius / 4, 3 * radius / 4, radius]
             const backCircle = group.selectAll(".backgroundCircle")
-                .data(r)
+                .data(radiusList)
                 .enter()
                 .append('circle')
                     .attr("cx", origin[0])
@@ -108,6 +112,7 @@ export default {
                 .attr("stroke", "grey")
                 .attr('fill', 'none')
                 .attr('stroke-width', 0.5)
+                // .on('mouseover')
             let extentList = [] as number[][]
 
             // plot axes
@@ -137,7 +142,7 @@ export default {
                 .attr('class', 'axis-label');
             
             keys.forEach((d, i) => {
-                extentList.push([0, d3.extent(datum.map(k => k.values[i].value))[1]])
+                extentList.push([0, d3.max(datum.map(k => k.values[i].value))])
             }) 
             let rScale = []
             extentList.forEach((d, i) => {
@@ -147,8 +152,17 @@ export default {
                     .domain(d)
                 )  
             })
+            for (let index = 1; index < radiusList.length - 1; index++) {
+                axes.append('text')
+                .attr('class', 'scale-label')
+                .attr('x', (d, i) => origin[0] + radiusList[index] * Math.cos(angleList[i] - Math.PI/2))
+                .attr('y', (d, i) => origin[1] + radiusList[index] * Math.sin(angleList[i] - Math.PI/2))
+                .text((d, i) => Math.round(extentList[i][1] * index / radiusList.length * 10) / 10)
+                .style('opacity', 0)
+            }
             // color function 
-            function colorcode(i) {
+            function colorcode(rack: string) {
+                let i = rack_list.findIndex(d => d == rack)
                 return d3.schemeCategory10[i]
             }
 
@@ -163,11 +177,15 @@ export default {
                 .text(datasets[+this.dataset].substring(datasets[+this.dataset].length-12, datasets[+this.dataset].length-4))
 
             // radar chart curve version
-            let lineRadial = d3.lineRadial()
+            let lineRadial = d3.areaRadial()
                 .curve(d3.curveCardinalClosed.tension(0.5)) // the higher the tension, the more straigt the line is
-                .radius((d, i) => {
+                .outerRadius((d, i) => {
                     let scale = rScale[i]
                     return scale(d.value)
+                })
+                .innerRadius((d, i) => {
+                    let scale = rScale[i]
+                    return scale(d.value_min)
                 })
                 .angle((d, i) => angleList[i])
             let center = group.append('g').attr("transform", `translate(${origin[0]}, ${origin[1]})`)
@@ -176,11 +194,51 @@ export default {
                 .data(datum).enter()
                 .append('g')
             
-            let path = radarWrapper.append("path")
+            let background = radarWrapper.append("path")
+                .attr('class', d => d.rack)
                 .attr("d", (d) => lineRadial(d.values))
-                .attr("stroke", (d, i) => d3.schemeCategory10[i])
+                .attr("stroke", (d, i) => colorcode(d.rack))
                 .attr('stroke-width', 0.5)
+                .attr('fill', (d, i) => colorcode(d.rack))
+                .style('opacity', 0.1)
+
+            let path = radarWrapper.append("path")
+                .attr('class', d => 'line' + d.rack)
+                .attr("d", (d) => lineRadial(d.values))
+                .attr("stroke", (d, i) => colorcode(d.rack))
+                .attr('stroke-width', 1)
                 .attr('fill', 'none')
+                .style('opacity', 1)
+            const legendContainer = d3.select('#legend-svg')
+                .attr('width', this.legend_size.width)
+                .attr('height', this.legend_size.height)                
+                .attr('viewBox', [0, 0, this.legend_size.width, this.legend_size.height])
+            if (this.dataset == '1') {
+                let legend_group = legendContainer.append('g').attr('transform', `translate(${this.margin.left},${this.margin.top})`)
+                .selectAll('.mylegend')
+                .data(datum).enter()
+                .append('g')
+                legend_group.append('text')
+                    .attr('x', (d, i) => 20 + i * 50)
+                    .attr('y', 0)
+                    .attr('alignment-baseline', 'middle')
+                    .text(d => d.rack)
+                    .on('click', (event, d) => {
+                        let currentOpacity = d3.select('.'+d.rack).style('opacity')
+                        d3.selectAll('.'+d.rack).style('opacity', currentOpacity > 0? 0:0.1);
+                        d3.selectAll('.line'+d.rack).style('opacity', currentOpacity > 0? 0:1);
+                    })
+                legend_group.append('circle')
+                    .attr('r', 5)
+                    .attr('cx', (d, i) => 10 + i * 50)
+                    .attr('cy', 0)
+                    .attr('fill', (d, i) => colorcode(d.rack))
+                    .style('opacity', 0.5)
+                    .on('click', (event, d) => {
+                        let currentOpacity = d3.select('.'+d.rack).style('opacity')
+                        d3.selectAll('.'+d.rack).style('opacity', currentOpacity > 0? 0:0.3);
+                    }) 
+            }
             
         },
     },
@@ -202,6 +260,10 @@ export default {
 }
 </script>
 <template>
+    <div v-if="dataset == '1'">
+        <svg id="legend-svg"></svg>
+    </div>
+    
     <div ref="radarChartContainer" class="radar-container">
         <svg :id="svgId"></svg>
         <div class="tooltip"></div>

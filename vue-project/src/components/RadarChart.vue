@@ -213,6 +213,8 @@ export default {
             
             let background = radarWrapper.append("path")
                 .attr('class', d => d.rack)
+                .attr('class', `dataset-${this.dataset}`)
+                // .attr('class', "background")
                 .attr("d", (d) => lineRadial(d.values))
                 .attr("stroke", (d, i) => colorcode(d.rack))
                 .attr('stroke-width', 0.5)
@@ -221,6 +223,7 @@ export default {
 
             let path = radarWrapper.append("path")
                 .attr('class', d => 'tp'+d.rack)
+                .attr('class', d => 'front')
                 .attr("d", (d) => lineRadial(d.values))
                 .attr("stroke", (d, i) => colorcode(d.rack))
                 .attr('stroke-width', 1)
@@ -236,7 +239,7 @@ export default {
                 .selectAll('.mylegend')
                 .data(rack_list).enter()
                 .append('g')
-                legend_group.append('text')
+                const legend_label = legend_group.append('text')
                     .attr('x', (d, i) => 20 + i * 50)
                     .attr('y', 0)
                     .attr('alignment-baseline', 'middle')
@@ -246,6 +249,19 @@ export default {
                         d3.selectAll('.'+d).style('opacity', currentOpacity > 0? 0:0.2)
                         d3.selectAll('.tp'+d).style('opacity', currentOpacity > 0? 0:1);
                     })
+                    .on('mouseover', (event, d) => {
+                        let path_class = d3.selectAll('.'+d)
+                        console.log(path_class)
+                        d3.selectAll('path')
+                        .filter(otherPath => otherPath !== path_class[0])
+                        .style('opacity', 0)
+                        // d3.selectAll('.'+d).style('opacity', 0.2)
+                        // d3.selectAll('.tp'+d).style('opacity', 1);
+                    })
+                    // .on('mouseout', (event, d) => {
+                    //     d3.selectAll('.background').style('opacity', 0.2)
+                    //     d3.selectAll('.front').style('opacity', 1);
+                    // })
                 legend_group.append('circle')
                     .attr('r', 5)
                     .attr('cx', (d, i) => 10 + i * 50)

@@ -76,6 +76,9 @@ export default {
   <!-- Part 3 -->
     <div class="full-width">
       <h2 style="padding-top:20px">System View</h2>
+      <div>
+        <p>The following radar chart shows the </p>
+      </div>
       <div class="radar-container">
         <div class="row-container">
           <div class="col">

@@ -4,7 +4,7 @@ import { isEmpty, debounce, range } from 'lodash';
 import { ComponentSize, Margin, ContainerRect } from '../types';
 
 let datum = []
-const rack_list = ['l07', 'k06', 'k07', 'l06', 'm05', 'm06', 'm07']
+const rack_list = [ 'k06', 'k07', 'l06', 'l07', 'm05', 'm06', 'm07']
 let datasets = [
     '../../data/rack-data-14:30:01.csv',
     '../../data/rack-data-14:55:01.csv',
@@ -58,7 +58,17 @@ export default {
             }
             datum.push(Obj)
         })
-        console.log(datum)
+        
+        function compare(a, b) {
+            if (a.rack < b.rack) {
+                return 1
+            }
+            if (a.rack > b.rack) {
+                return -1
+            } 
+            return 0
+        }
+        datum.sort(compare)
         this.initChart();
     },
     methods: {
@@ -106,7 +116,7 @@ export default {
                 theta += angleSlice
             }
             // background circle
-            let radiusList = [0, radius / 4, 2 * radius / 4, 3 * radius / 4, radius]
+            let radiusList = [0, radius / 3, 2 * radius / 3, radius]
             const backCircle = group.selectAll(".backgroundCircle")
                 .data(radiusList)
                 .enter()
@@ -147,7 +157,7 @@ export default {
                 .attr('class', 'axis-label');
             
             keys.forEach((d, i) => {
-                extentList.push([0, d3.max(datum.map(k => k.values[i].value))])
+                extentList.push([d3.min(datum.map(k => k.values[i].value_min)), d3.max(datum.map(k => k.values[i].value))])
             }) 
             let rScale = []
             extentList.forEach((d, i) => {
@@ -159,11 +169,13 @@ export default {
             })
             for (let index = 1; index < radiusList.length - 1; index++) {
                 axes.append('text')
+                // .attr("dy", ".1em")  
                 .attr('class', 'scale-label'+this.dataset)
                 .attr('x', (d, i) => origin[0] + radiusList[index] * Math.cos(angleList[i] - Math.PI/2))
                 .attr('y', (d, i) => origin[1] + radiusList[index] * Math.sin(angleList[i] - Math.PI/2))
-                .text((d, i) => Math.round(extentList[i][1] * index / radiusList.length * 10) / 10)
+                .text((d, i) => Math.round((extentList[i][0]+(extentList[i][1]-extentList[i][0]) * index / radiusList.length) * 100) / 100)
                 .style('opacity', 0)
+                
             }
             // color function 
             function colorcode(rack: string) {

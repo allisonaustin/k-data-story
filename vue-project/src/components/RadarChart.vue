@@ -23,16 +23,22 @@ function groupBy(arr, property) {
     {})
 }
 
+// modify the data here
 let datum = [];
 csvData.forEach(d => {
+    
     let Obj = {
         rack: d.rack,
+        check_time: d3.timeParse('%Y-%m-%d %H:%M:%S')(d.check_time),
         values: [
-            { axis: "pressure_0", value: +d.pressure_0 },
-            { axis: "pressure_1", value: +d.pressure_1 },
+            // { axis: "pressure_0", value: +d.pressure_0 },
+            // { axis: "pressure_1", value: +d.pressure_1 },
             { axis: "distance", value: ((+d.x - err_x) ** 2 + (+d.y - err_y) ** 2) ** 0.5 }, // distance from error rack
-            { axis: "a1_fan1_rpm", value: +d.a1_fan1_rpm }
-        ]
+            { axis: "a1_fan1_rpm", value: +d.a1_fan1_rpm },
+            { axis: "bp0_sb0_cpu_0_temp", value: +d.bp0_sb0_cpu_0_temp},
+            { axis: "bp0_sb0_cpu_6_temp", value: +d.bp0_sb6_cpu_0_temp},
+            { axis: "bp0_sb0_ibc_0_vol", value: +d.bp0_sb0_ibc_0_vol},
+        ],
     }
     datum.push(Obj)
 })
@@ -85,56 +91,87 @@ export default {
                 .attr(`transform`, `translate(${this.margin.left}, ${this.margin.top})`)
             
             const keys = datum[0].values.map(d => d.axis);
-            let radian = 2 * Math.PI / numAxes
-            let theta = - Math.PI
-            let thetaList = [] as number[]
+            let theta = -Math.PI/2
+            let angleList = [] as number[]
             for (let i = 0; i < numAxes; i++) {
-                thetaList.push(theta)
-                theta += radian
+                angleList.push(theta)
+                theta += angleSlice
             }
-            
-            const axes = group.selectAll('allLines')
-                .data(keys)
-                .enter()
-                .append('polyline')
-                .attr('stroke', 'grey')
-                .attr('fill', 'none')
-                .attr('stroke-width', 0.5)
-                .attr('points', (d, i) => {
-                    let p = [origin[0] + radius * Math.cos(thetaList[i]), origin[1] + radius * Math.sin(thetaList[i])]
-                    return[origin, p]
-                })
-
+            // background circle
             let r = [0, radius / 4, 2 * radius / 4, 3 * radius / 4, radius]
-
-            const backPoly = group.selectAll("allBack")
+            const backCircle = group.selectAll(".backgroundCircle")
                 .data(r)
                 .enter()
-                .append('polygon')
+                .append('circle')
+                    .attr("cx", origin[0])
+                    .attr("cy", origin[1])
+                    .attr("r", (d) => d)
                 .attr("stroke", "grey")
                 .attr('fill', 'none')
                 .attr('stroke-width', 0.5)
-                .attr('points', (d) => {
-                    let point_list = [] 
-                    for (let j = 0; j < numAxes; j++) {
-                        let r = d
-                        let x = origin[0] + r * Math.cos(thetaList[j])
-                        let y = origin[1] + r * Math.sin(thetaList[j])
-                        point_list.push([x, y])
-                    }
-                    return point_list
-            })
+            let extentList = [] as number[][]
 
-            let rScale = d3.scaleLinear()
-                .rangeRound([0, radius])
-                .domain([40, 160])
-
-            // axis labels
-            const axisLabels = axes.append('text')
-                .attr('x', (d, i) => radScale(1.1) * Math.cos(angleSlice * i - Math.PI / 2))
-                .attr("y", (d, i) => radScale(1.1) * Math.sin(angleSlice * i - Math.PI / 2))
-                .text(d => d.axis)
+            // plot axes
+            const axes = group.selectAll('.axis')
+                .data(keys)
+                .enter()
+                .append('g')
+                .attr('class', 'axis')
+            
+            // axis line
+            axes.append('line')
+                .attr('x1', origin[0])
+                .attr('y1', origin[1])
+                .attr('x2', (d, i) => origin[0] + radius * Math.cos(angleList[i] - Math.PI/2))
+                .attr('y2', (d, i) => origin[1] + radius * Math.sin(angleList[i] - Math.PI/2))
+                .attr('stroke', 'grey')
+                .attr('fill', 'none')
+                .attr('stroke-width', 0.5)
+            // label for each category
+            axes.append('text')
+                .attr('x', (d, i) => origin[0] + radius * Math.cos(angleList[i] - Math.PI/2))
+                .attr('y', (d, i) => origin[1] + radius * Math.sin(angleList[i] - Math.PI/2))
+                .text(d => d)
+                .style('text-anchor', (d, i) => {
+                    return (Math.cos(angleList[i] - Math.PI/2) < 0)? "end":"begin";
+                })
                 .attr('class', 'axis-label');
+            
+            keys.forEach((d, i) => {
+                extentList.push([0, d3.extent(datum.map(k => k.values[i].value))[1]])
+            }) 
+            let rScale = []
+            extentList.forEach((d, i) => {
+                rScale.push(
+                    d3.scaleLinear()
+                    .range([0, radius])
+                    .domain(d)
+                )  
+            })
+            // color function 
+            function colorcode(i) {
+                return d3.schemeCategory10[i]
+            }
+            // radar chart curve version
+            let lineRadial = d3.lineRadial()
+                .curve(d3.curveCardinalClosed.tension(0.5)) // the higher the tension, the more straigt the line is
+                .radius((d, i) => {
+                    let scale = rScale[i]
+                    return scale(d.value)
+                })
+                .angle((d, i) => angleList[i])
+            let center = group.append('g').attr("transform", `translate(${origin[0]}, ${origin[1]})`)
+            
+            let radarWrapper = center.selectAll(".radar-wrapper")
+                .data(datum).enter()
+                .append('g')
+            
+            let path = radarWrapper.append("path")
+                .attr("d", (d) => lineRadial(d.values))
+                .attr("stroke", (d, i) => d3.schemeCategory10[i])
+                .attr('stroke-width', 0.5)
+                .attr('fill', 'none')
+            
         },
     },
     watch: {

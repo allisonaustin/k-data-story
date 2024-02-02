@@ -4,7 +4,7 @@ import { isEmpty, debounce } from 'lodash';
 import { ComponentSize, Margin } from '../types';
 import { errorNode, normalNode } from '../colors';
 
-const data = await d3.csv('../../data/k_data_processed.csv');
+const data = await d3.csv('../../processed_data/k_data_processed.csv');
 const rack_err = 'l7'
 const rack_norm = 'm5'
 

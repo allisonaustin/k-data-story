@@ -3,10 +3,10 @@ import * as d3 from 'd3';
 import { isEmpty, debounce } from 'lodash';
 import { ComponentSize, Margin } from '../types';
 
-const temp_data_err = await d3.csv('../../data/temp-data-l07.csv');
-const temp_data_nor = await d3.csv('../../data/temp-data-m05.csv');
-const vol_data_err = await d3.csv('../../data/vol-data-l07.csv');
-const vol_data_nor = await d3.csv('../../data/vol-data-m05.csv');
+const temp_data_err = await d3.csv('../../processed_data/temp-data-l07.csv');
+const temp_data_nor = await d3.csv('../../processed_data/temp-data-m05.csv');
+const vol_data_err = await d3.csv('../../processed_data/vol-data-l07.csv');
+const vol_data_nor = await d3.csv('../../processed_data/vol-data-m05.csv');
 
 const rack_err = 'l07'
 const rack_nor = 'm05'

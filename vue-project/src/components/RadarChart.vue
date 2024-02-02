@@ -6,9 +6,9 @@ import { ComponentSize, Margin, ContainerRect } from '../types';
 let datum = []
 const rack_list = [ 'k06', 'k07', 'l06', 'l07', 'm05', 'm06', 'm07']
 let datasets = [
-    '../../data/rack-data-14:30:01.csv',
-    '../../data/rack-data-14:55:01.csv',
-    '../../data/rack-data-15:00:01.csv'
+    '../../processed_data/rack-data-14:30:01.csv',
+    '../../processed_data/rack-data-14:55:01.csv',
+    '../../processed_data/rack-data-15:00:01.csv'
 ]
 
 export default {

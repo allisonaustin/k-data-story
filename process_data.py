@@ -61,13 +61,13 @@ if __name__ == "__main__":
     time3 = '15:00:01'
 
     out_paths = [
-        f'vue-project/data/temp-data-{rack_err}.csv',
-        f'vue-project/data/temp-data-{rack_norm}.csv',
-        f'vue-project/data/vol-data-{rack_err}.csv',
-        f'vue-project/data/vol-data-{rack_norm}.csv',
-        f'vue-project/data/rack-data-{time1}.csv',
-        f'vue-project/data/rack-data-{time2}.csv',
-        f'vue-project/data/rack-data-{time3}.csv',
+        f'vue-project/processed_data/temp-data-{rack_err}.csv',
+        f'vue-project/processed_data/temp-data-{rack_norm}.csv',
+        f'vue-project/processed_data/vol-data-{rack_err}.csv',
+        f'vue-project/processed_data/vol-data-{rack_norm}.csv',
+        f'vue-project/processed_data/rack-data-{time1}.csv',
+        f'vue-project/processed_data/rack-data-{time2}.csv',
+        f'vue-project/processed_data/rack-data-{time3}.csv',
     ]
 
     cols_df = pd.read_csv('data/col_names.csv', header=None)

@@ -4,10 +4,10 @@ import { isEmpty, debounce, range } from 'lodash';
 import { ComponentSize, Margin, ContainerRect } from '../types';
 import { errorPeriod, errorNode, normalNode } from '../colors';
 
-const temp_data_err = await d3.csv('../../data/temp-data-l07.csv');
-const temp_data_norm = await d3.csv('../../data/temp-data-m05.csv');
-const vol_data_err = await d3.csv('../../data/vol-data-l07.csv');
-const vol_data_norm = await d3.csv('../../data/vol-data-m05.csv');
+const temp_data_err = await d3.csv('../../processed_data/temp-data-l07.csv');
+const temp_data_norm = await d3.csv('../../processed_data/temp-data-m05.csv');
+const vol_data_err = await d3.csv('../../processed_data/vol-data-l07.csv');
+const vol_data_norm = await d3.csv('../../processed_data/vol-data-m05.csv');
 const rack_err = 'l7'
 const rack_norm = 'm5'
 const bp_err = '0'
